@@ -7,19 +7,7 @@
 <project name="FreeBoogie" default="compile" basedir=".">
   <description>infrastructure for handling Boogie code</description>
 
-  <!-- custom tasks -->
-  <!-- Assuming an Ubuntu distribution with packages checkstyle, antlr,
-    and a few others -->
-  <taskdef
-    resource="checkstyletask.properties"
-    classpath="/usr/share/java/checkstyle.jar:/usr/share/java/antlr.jar:/usr/share/java/commons-beanutils.jar:/usr/share/java/commons-collections.jar:/usr/share/java/commons-logging.jar" />
-  <!-- Please put findbugs-ant.jar in the ANT libdir (e.g., /usr/share/ant/lib on Ubuntu) -->
-  <taskdef 
-    name="findbugs" 
-    classname="edu.umd.cs.findbugs.anttask.FindBugsTask"/>
-  <!-- TODO(radugrigore): task for clops -->
-
-  <!-- set properties for this build, and helpers -->
+  <!-- {{{ set properties for this build, and helpers -->
   <property file="global.properties"/>
   <property file="local.properties"/>
   <target name="locals.check">
@@ -30,9 +18,9 @@
     <echo>WARNING: Please edit the file local.properties</echo>
     <echo>WARNING: You won't see these warnings again.</echo>
   </target>
+  <!-- }}} -->
 
-
-  <!-- properties that are computed -->
+  <!-- {{{ properties that are computed -->
   <property name="cli-dst-dir" location="generated-src/freeboogie/cli"/>
   <property name="ast-src-dir" location="src/${ast-dir}"/>
   <property name="ast-dst-dir" location="generated-src/${ast-dir}"/>
@@ -42,8 +30,20 @@
     <fileset dir="lib" includes="*.jar" />
     <pathelement path="classes"  />
   </path>
+  <!-- }}} -->
 
-  <!-- code generation and related -->
+  <!-- {{{ custom tasks -->
+  <taskdef
+    resource="checkstyletask.properties"
+    classpath="lib/checkstyle.jar:lib/antlr-2.7.7.jar:lib/commons-beanutils.jar:lib/commons-collections3.jar:lib/commons-logging.jar" />
+  <taskdef 
+    name="findbugs" 
+    classname="edu.umd.cs.findbugs.anttask.FindBugsTask"
+    classpath="lib/findbugs-ant.jar"/>
+  <!-- TODO(radugrigore): task for clops -->
+  <!-- }}} -->
+
+  <!-- {{{ code generation and related -->
   <target 
       name="generate_ast" 
       depends="check_ast_uptodate"
@@ -131,8 +131,9 @@
       <srcfiles file="src/freeboogie/freeboogie.clo"/>
     </uptodate>
   </target>
+  <!-- }}} -->
 
-  <!-- Compilation and documentation targets -->
+  <!-- {{{ compilation and documentation targets -->
   <target
       name="compile"
       depends="generate_code"
@@ -156,8 +157,9 @@
       <classpath refid="classpath" />
     </javadoc>
   </target>
+  <!-- }}} -->
 
-  <!-- Distribution -->
+  <!-- {{{ distribution -->
   <target
       name="dist"
       depends="compile"
@@ -179,9 +181,9 @@
     <copy file="lib/${genericutils-jar}" todir="dist/lib" />
     <copy file="lib/${jline-jar}" todir="dist/lib" />
   </target>
-  
+  <!-- }}} -->
  
-  <!-- Test targets -->
+  <!-- {{{ test targets -->
 
   <target name="functional_test" depends="compile" description="run functional tests">
     <exec executable="test/functional/test" 
@@ -191,8 +193,9 @@
   </target>
 
   <target name="test" depends="functional_test" description="run all tests"></target>
+  <!-- }}} -->
 
-  <!-- Static analyzes -->
+  <!-- {{{ static analyzes -->
   <target name="style">
     <checkstyle config="style.xml">
       <fileset dir="src">
@@ -211,8 +214,9 @@
       <class location="classes"/>
     </findbugs>
   </target>
+  <!-- }}} -->
 
-  <!-- Cleanup targets -->
+  <!-- {{{ cleanup targets -->
   <target name="clean_ast" description="removes AST generated files">
     <delete dir="${ast-dst-dir}" />
   </target>
@@ -246,5 +250,6 @@
     </delete>
     <defaultexcludes default="true" />
   </target>
+  <!-- }}} -->
 </project>
 
