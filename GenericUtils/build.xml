@@ -22,6 +22,7 @@
   <target name="doc"> 
     <mkdir dir="docs/api"/>
     <javadoc destdir="docs/api" sourcepath="src">
+      <classpath refid="classpath"/>
       <package name="genericutils.*" />
     </javadoc>
   </target>
