@@ -207,7 +207,7 @@
     </checkstyle>
   </target>
 
-  <target name="findbugs" depends="locals" if="locals.ok">
+  <target name="findbugs" depends="locals,compile" if="locals.ok">
     <findbugs home="${findbugs.home}" output="text" outputFile="bugs.txt">
       <auxClasspath refid="classpath"/>
       <sourcePath path="src"/>

@@ -152,6 +152,7 @@ public class Main {
     if (opt.getDesugarBreak()) stages.add(new BreakDesugarer());
     if (opt.getDesugarWhile()) stages.add(new WhileDesugarer());
     if (opt.getDesugarIf()) stages.add(new IfDesugarer());
+    if (opt.getDesugarMaps()) stages.add(new MapRemover());
     if (opt.getMakeHavoc()) stages.add(new HavocMaker());
     if (opt.getCutLoops()) stages.add(new LoopCutter());
     if (opt.getDesugarCalls()) stages.add(new CallDesugarer());
@@ -194,7 +195,10 @@ public class Main {
         LogLevel.INFO,
         "Dump after stage " + stageName + ".");
     File dir = new File(opt.getDumpIntermediateStages(), stageName);
-    dir.mkdirs();
+    if (!dir.mkdirs()) {
+      normal("Cannot create " + dir.getPath());
+      return;
+    }
 
     // dump boogie
     try {

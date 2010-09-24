@@ -39,7 +39,7 @@ public class Transformer extends Evaluator<Ast> {
   protected TcInterface tc;
 
   // short name to be used by subclasses
-  protected static ImmutableList<String> noString = ImmutableList.of();
+  protected final static ImmutableList<String> noString = ImmutableList.of();
 
   /** Returns the name of this transformer. */
   public String name() {

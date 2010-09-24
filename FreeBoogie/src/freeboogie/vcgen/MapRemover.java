@@ -110,6 +110,16 @@ public class MapRemover extends Transformer {
                           .addAll(nIds("y", n)).build())))));
       } // for i
     } // for n
+    p = Program.mk(
+        p.fileName(),
+        p.types(),
+        axioms.build(),
+        p.variables(),
+        p.constants(),
+        functions.build(),
+        p.procedures(),
+        p.implementations(),
+        p.loc());
     return TypeUtils.internalTypecheck(p, tc);
   }
 
@@ -234,7 +244,7 @@ public class MapRemover extends Transformer {
   private ImmutableList<VariableDecl> nVarDecl(String prefix, int n) {
     ImmutableList.Builder<VariableDecl> decls = ImmutableList.builder();
     for (int i = 1; i <= n; ++i) 
-      decls.add(mkVarDecl("prefix" + n, mkType("T" + n)));
+      decls.add(mkVarDecl(prefix + i, mkType("T" + i)));
     return decls.build();
   }
 

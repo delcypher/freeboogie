@@ -81,6 +81,7 @@ ARGS::
   DesugarBreak :{} :[default="true"]
   DesugarWhile :{} :[default="true"]
   DesugarIf :{} :[default="true"]
+  DesugarMaps :{} :[default="true"]
   DesugarCalls :{} :[default="true"]
   DesugarHavoc :{} :[default="true"]
   DesugarSpec :{} :[default="true"]

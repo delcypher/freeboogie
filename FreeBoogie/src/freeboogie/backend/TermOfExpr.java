@@ -246,7 +246,7 @@ public class TermOfExpr<T extends Term<T>> extends Evaluator<T> {
     case OR:
       return or(l, r);
     default:
-      Err.internal("Unknown binary operator.");
+      Err.internal("Unknown binary operator (" + binaryOp.op() + ").");
       return null;
     }
   }
