@@ -40,16 +40,17 @@ public class LoopCutter extends CommandDesugarer {
     assert false : "Break commands are assumed to be desugared at this stage.";
   }
 
-  @Override public Command eval(GotoCmd cmd) {
+  @Override public Command eval(GotoCmd command) {
+    if (!done.contains(command)) return null;
     ImmutableList.Builder<String> builder = ImmutableList.builder();
-    for (Command c : currentFG.to(cmd)) {
-      if (!toRemove.contains(Pair.of(cmd, c))) 
+    for (Command c : currentFG.to(command)) {
+      if (!toRemove.contains(Pair.of(command, c))) 
         builder.add(c.labels().get(0));
     }
     ImmutableList<String> newSuccessors = builder.build();
-    if (newSuccessors.isEmpty() && !cmd.successors().isEmpty())
-      addEquivalentCommand(AstUtils.stuckCmd(cmd.labels(), cmd.loc()));
-    return GotoCmd.mk(cmd.labels(), newSuccessors, cmd.loc());
+    if (newSuccessors.isEmpty() && !command.successors().isEmpty())
+      addEquivalentCommand(AstUtils.stuckCmd(command.labels(), command.loc()));
+    return GotoCmd.mk(command.labels(), newSuccessors, command.loc());
   }
 
   @Override public Command eval(AssertAssumeCmd assertAssumeCmd) {
@@ -69,6 +70,7 @@ public class LoopCutter extends CommandDesugarer {
   }
 
   private Command processCommand(Command command) {
+    if (!done.contains(command)) return null;
     Set<Command> next = currentFG.to(command);
     assert next.size() == 1;
     if (toRemove.contains(Pair.of(command, next.iterator().next()))) {
