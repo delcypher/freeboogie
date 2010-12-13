@@ -1,6 +1,5 @@
-=== array-axioms.bpl ===
-=== explicit.bpl ===
-=== nested.bpl ===
-=== scope.bpl ===
-=== swap-1.bpl ===
-=== swap-2.bpl ===
+ OK: evil at nested.bpl:1:11
+ OK: bau at scope.bpl:1:11
+ OK: swap at swap-1.bpl:5:11
+ OK: swap at swap-2.bpl:8:11
+ OK: main at swap-2.bpl:15:11

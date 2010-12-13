@@ -1,10 +1,10 @@
-var heap<x> : [ref, <x>name]x;
+type Ref;
+type Name x;
+var heap : <x>[Ref, Name x]x;
 
-procedure swap<x>(o : ref, a : <x>name, b : <x>name) {
+procedure swap<x>(o : Ref, a : Name x, b : Name x) {
   var tmp : x;
-  entry:
-    tmp := heap[o,a];
-    heap[o,a] := heap[o,b];
-    heap[o,b] := tmp;
-    return;
+  tmp := heap[o,a];
+  heap[o,a] := heap[o,b];
+  heap[o,b] := tmp;
 }
