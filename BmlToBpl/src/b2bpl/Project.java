@@ -17,7 +17,7 @@ import b2bpl.bytecode.bml.StandardDesugarer;
  *
  * A {@code Project} contains the information about the bytecode classes
  * to translate as well as other user configurations such as the set of
- * transformations to apply to the resulting BoogiePL program and other
+ * transformations to apply to the resulting Boogie program and other
  * settings which, to some extent, determine the behavior of the
  * {@link Main compiler}. A convenience method is provided for creating an
  * adequately configured {@code Project} based on a set of supported

@@ -32,7 +32,6 @@ public class Main implements ITroubleReporter {
 
   public static void main(String[] args) {
     new Main(args).compile();
-    System.exit(0);
   }
 
   public void compile() {
