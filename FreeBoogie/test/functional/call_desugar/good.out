@@ -1,0 +1,3 @@
+NOK: Caller at simple-bad-post.bpl:10:11
+NOK: Caller at simple-bad-pre.bpl:10:11
+ OK: Caller at simple-ok.bpl:10:11

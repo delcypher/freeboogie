@@ -1,13 +1,15 @@
-var Heap : [ref]int;
+type Ref;
+var heap : [Ref]int;
 function P(x : int) returns (bool);
 function Q(x : int, y : int) returns (bool);
 procedure Callee(x : int) returns (y : int);
   requires P(x);
-  modifies Heap;
+  modifies heap;
   ensures Q(x, y);
 
 procedure Caller(v : int) returns (w : int) {
-entry:
-  call w := Callee(v); return;
+  assume P(v);
+  call w := Callee(v);
+  assert Q(v, w);
 }
 
