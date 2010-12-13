@@ -1,7 +1,5 @@
 procedure P(a : [int]int, x : int) returns (i : int) {
-  entry:
     i := 0;
-    goto head;
   head:
     goto body, after;
   body:
@@ -10,5 +8,4 @@ procedure P(a : [int]int, x : int) returns (i : int) {
     goto head;
   after:
     assume a[i] == x;
-    return;
 }
