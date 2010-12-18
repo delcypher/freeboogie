@@ -34,7 +34,7 @@ Declaration =
 TypeDecl = 
   boolean finite, 
   String! name,
-  [list] Identifier typeArgs, // TODO(radugrigore): remane to typeVars
+  [list] Identifier typeArgs, // TODO(radugrigore): rename to typeVars
   Type type; // non-null when this is a type synonym
 Axiom =
   String! name,

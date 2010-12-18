@@ -63,6 +63,12 @@ public \if_terminal{final}{abstract} class \ClassName extends \BaseName {
     return new \ClassName(\members[,]{\memberName}, location);
   }
 
+  \members{
+    public \ClassName with\MemberName(\mtn) {
+      return \memberName == this.\memberName? this : mk(\members[,]{\memberName}, location);
+    }
+  }
+
   public void checkInvariant() {
     assert location != null;
     \members{
