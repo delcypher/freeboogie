@@ -1,2 +1,2 @@
-java -jar ../../dist/astgen-*.jar fb.ag simple.tpl
+rm -rf ast; mkdir ast; java -jar ../../dist/astgen-*.jar fb.ag simple.tpl; rm -rf ast
 
