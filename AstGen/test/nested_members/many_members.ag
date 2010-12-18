@@ -1,0 +1,12 @@
+Record =
+  String one,
+  String two,
+  String three,
+  String four,
+  String five,
+  int six,
+  int seven,
+  int eight,
+  char nine,
+  char ten;
+

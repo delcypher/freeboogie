@@ -25,21 +25,16 @@ import genericutils.Err;
  * output. If there are nested \classes macros then only the
  * innermost one is considered. (In most applications nested list
  * macros should not be needed.)
+ *
+ * See test/nested_members to see why context stacks are useful.
  * 
  * TODO: consider adding an optional parameter for macros that indicates
  *       a nesting level such that, for example, the following is legal
  *          \classes{(\classes{\ClassName[0],\ClassName[1]})}
  *       and prints all pairs of class names.
  * 
- * TODO If nested list macros are deemed unnecessary then switch the
- *      context stacks to single (nullable) elements.
- *      
  * TODO The duplicated code is a bit too much for my taste.
  * 
- * TODO I may want to add macro definitions such as
- *     \def\Type{\if_primitive{\if_enum{\ClassName.}{}\Membertype}{\MemberType}}
- *     It gets tedious to write it.
- *
  * @author rgrig 
  * @author Mikolas Janota 
  */

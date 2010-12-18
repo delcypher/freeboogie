@@ -1,0 +1,2 @@
+java -jar ../../dist/astgen-*.jar many_members.ag simple.tpl
+
