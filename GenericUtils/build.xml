@@ -4,7 +4,7 @@
   <!-- set global properties for this build -->
   <property name="gcollect-jar" value="google-collect-1.0-rc1.jar"/>
   <property name="debug" value="yes" />
-  <property name="version" value="0.1"/>
+  <property name="version" value="0.2"/>
   <path id="classpath">
     <fileset dir="lib" includes="*.jar" />
     <pathelement path="${build}"  />
@@ -13,6 +13,7 @@
   <target name="compile">
     <mkdir dir="build" />
     <javac srcdir="src" destdir="build"
+        includeAntRuntime="no" 
         deprecation="yes" optimize="yes" debug="${debug}">
       <compilerarg value="-Xlint:all" />
       <classpath refid="classpath"/>
