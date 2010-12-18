@@ -50,7 +50,6 @@ public class WeakestPrecondition<T extends Term<T>> extends StrongestPostconditi
 
   @Override
   public T vc() {
-    Body bdy = getCurrentBody();
-    return pre(bdy.block().commands().get(0));
+    return pre(currentBody().block().commands().get(0));
   }
 }

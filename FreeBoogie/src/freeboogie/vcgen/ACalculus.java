@@ -59,21 +59,24 @@ public abstract class ACalculus<T extends Term<T>> {
     preCache.clear();
     postCache.clear();
   }
-  
-  /**
-   * Sets the flow graph to be processed by the next calls to
-   * {@code pre}, {@code post}, and {@code vc}. This class
-   * assumes that {@code flow} won't be changed.
+
+  public Body currentBody() {
+    return currentBody;
+  }
+
+  /** 
+    Sets the implementation to be processed by subsequent calls to
+    {@code pre}, {@code post}, and {@code vc}.
    */
-  public void setCurrentBody(Body bdy) {
-    flow = tc.flowGraph(bdy);
+  public void prepareFor(Implementation implementation) {
+    flow = tc.flowGraph(implementation);
     log.say(LogCategories.STATS, LogLevel.INFO, "cfg_size " + flow.nodeCount());
-    currentBody = bdy;
+    currentBody = implementation.body();
     assert flow.isFrozen() : "please freeze flowgraph first";
     assert !flow.hasCycle() : "please cut loops first";
     resetCache();
   }
-
+  
   /**
    * Returns a verification condition for the whole flow graph.
    * @return a term representing the vc
@@ -97,11 +100,6 @@ public abstract class ACalculus<T extends Term<T>> {
   public T term(Command c) {
     if (!(c instanceof AssertAssumeCmd)) return trueTerm;
     return term.of(((AssertAssumeCmd)c).expr());
-  }
-
-
-  public Body getCurrentBody() {
-    return currentBody;
   }
 
   public TcInterface typeChecker() {

@@ -10,8 +10,7 @@ A:
     x := x + 1;
     break;
   }
-  y := x;
-  return;
+  goto done;
 B:
   while (x % 2 == 1) {
     while (x % 2 == 1) {
@@ -21,5 +20,6 @@ B:
       }
     }
   }
-  return;
+done:
+  y := x;
 }

@@ -13,7 +13,7 @@ import freeboogie.ast.*;
   list of type errors. Additional information can be queried
   using the other methods. Note in particular the method {@code
   getAST()}: It is possible for an implementation to modify the
-  AST, and in that case all the provided information referrs to
+  AST, and in that case all the provided information refers to
   the modified AST.
  
   This behaves as a Facade for the package.
@@ -36,7 +36,11 @@ public interface TcInterface {
    * @param bdy the body whose flow graph is requested
    * @return the flow graph of {@code bdy}
    */
-  SimpleGraph<Command> flowGraph(Body bdy);
+  SimpleGraph<Command> flowGraph(Implementation implementation);
+
+  /** Returns an object that can link commands to labels.
+      @see LabelsCollector */
+  LabelsCollector labels();
   
   /**
    * Returns the map of expressions to types.

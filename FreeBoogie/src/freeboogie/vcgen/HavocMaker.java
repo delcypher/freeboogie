@@ -55,7 +55,7 @@ public class HavocMaker extends CommandDesugarer {
 
   @Override public Implementation eval(Implementation implementation) {
     Body body = implementation.body();
-    flowGraph = tc.flowGraph(body);
+    flowGraph = tc.flowGraph(implementation);
     seen.clear(); seen.add(null); dfs2order.clear();
     dfs1(body.block().commands().get(0));
     Collections.reverse(dfs2order);

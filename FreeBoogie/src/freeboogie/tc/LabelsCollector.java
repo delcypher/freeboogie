@@ -1,47 +1,76 @@
+// header {{{1
 package freeboogie.tc;
 
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
+
+import genericutils.OneToManyBiMap;
+import genericutils.Pair;
 
 import freeboogie.ast.*;
 
+// class LabelsCollector {{{1
 /** 
-  Builds a map from labels to their commands. 
+  Builds, for each implementation, a 1-to-n map from commands to their labels,
+  with fast lookups both ways.
 
-  After a call to {@code process(program, typechecker)} the
-  client can fetch a command from a body and a label using {@code
-  getCommand()} and can also fetch a set of all commands in a
-  body using {@code getAllCommands()}.
+  Use {@code process(program, typechecker)} to collect labels.  Find a command
+  by its label using {@code command(implementation, label)}.  Find all labels
+  of a command using {@code labels(implementation, command)}.  Find some
+  (random) label of a command using {@code someLabel(implementation, command)}.
+
+  You may also find all commands under a body, including those nested in other
+  commands, using {@code allCommands(implementation)}.
  */
 public class LabelsCollector extends Transformer {
-  private Map<Body, Map<String, Command>> commandByBodyAndLabel = 
+  // fields {{{2
+  private Implementation currentImplementation;
+
+  // TODO(radugrigore): Just expose an unmodifiable view of these?
+  private Map<Pair<Implementation, String>, Command> command =
       Maps.newHashMap();
-  private Map<String, Command> commandByLabel;
+  private SetMultimap<Command, String> labels = HashMultimap.create();
+  private SetMultimap<Implementation, Command> allCommands =
+      HashMultimap.create();
 
-  private Map<Body, Set<Command>> commandsByBody = Maps.newHashMap();
-  private Set<Command> commands;
-
-  public Command getCommand(Body body, String label) {
-    return commandByBodyAndLabel.get(body).get(label);
+  // queries {{{2
+  public Command command(Implementation implementation, String label) {
+    return command.get(Pair.of(implementation, label));
   }
 
-  public Set<Command> getAllCommands(Body body) {
-    return Sets.newHashSet(commandsByBody.get(body));
+  public Set<String> labels(Command command) {
+    return labels.get(command);
   }
 
-  @Override public void see(Body body) {
-    Block block = body.block();
-    commandByLabel = Maps.newHashMap();
-    commandByBodyAndLabel.put(body, commandByLabel);
-    commands = Sets.newHashSet();
-    commandsByBody.put(body, commands);
-    block.eval(this);
+  public String someLabel(Command command) {
+    Set<String> labels = labels(command);
+    if (labels.isEmpty()) return null;
+    return labels.iterator().next();
   }
 
+  public Set<Command> allCommands(Implementation implementation) {
+    return allCommands.get(implementation);
+  }
+
+  // workers {{{2
+  @Override public void see(Implementation implementation) {
+    assert currentImplementation == null : "Nested implementations?";
+    currentImplementation = implementation;
+    implementation.body().eval(this);
+    currentImplementation = null;
+  }
+
+  private void recordLabels(Command c) {
+    allCommands.put(currentImplementation, c);
+    for (String l : c.labels()) {
+      command.put(Pair.of(currentImplementation, l), c);
+      labels.put(c, l);
+    }
+  }
+
+  // dispatchers {{{2
   @Override public void see(AssertAssumeCmd assertAssumeCmd) {
     recordLabels(assertAssumeCmd);
   }
@@ -77,8 +106,4 @@ public class LabelsCollector extends Transformer {
     whileCmd.body().eval(this);
   }
 
-  private void recordLabels(Command c) {
-    commands.add(c);
-    for (String l : c.labels()) commandByLabel.put(l,c);
-  }
 }

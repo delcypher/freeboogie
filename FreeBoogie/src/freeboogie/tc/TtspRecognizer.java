@@ -109,7 +109,7 @@ private static void print(HashMap<Integer,HashSet<Integer>> h) {
           System.out.println("SUCCESS (empty).");
           return;
         }
-        SimpleGraph<Command> currentFG = tc.flowGraph(body);
+        SimpleGraph<Command> currentFG = tc.flowGraph(impl);
         TtspRecognizer<Command> recog = 
           new TtspRecognizer<Command>(currentFG, body.block().commands().get(0));
         if (!recog.check()) {

@@ -139,8 +139,14 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
   }
 
   @Override
-  public SimpleGraph<Command> flowGraph(Body body) {
-    return flowGraphs.flowGraph(body);
+  public SimpleGraph<Command> flowGraph(Implementation implementation) {
+    SimpleGraph<Command> result = flowGraphs.flowGraph(implementation);
+    assert result != null : "You must compute flowgraphs first.";
+    return result;
+  }
+
+  public LabelsCollector labels() {
+    return flowGraphs.labels();
   }
   
   /* The cast is ugly, I know, but it reduces significantly memory use.

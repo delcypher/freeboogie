@@ -190,7 +190,7 @@ public abstract class AbstractPassivator extends Transformer {
   @Override public Implementation eval(Implementation implementation) {
     Body body = implementation.body();
     Signature sig = implementation.sig();
-    currentFG = tc.flowGraph(body);
+    currentFG = tc.flowGraph(implementation);
     if (currentFG.hasCycle()) {
       Err.warning("" + implementation.loc() + ": Implementation " + 
         sig.name() + " has cycles. I'm not passivating it.");

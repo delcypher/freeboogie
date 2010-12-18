@@ -25,15 +25,21 @@ public class LoopCutter extends CommandDesugarer {
 
   // === transformer methods ===
 
-  @Override public Body eval(Body body) {
-    Block block = body.block();
+  @Override public Implementation eval(Implementation implementation) {
     seen.clear();
     done.clear();
     toRemove.clear();
-    currentFG = tc.flowGraph(body);
-    dfs(block.commands().get(0));
-    block = (Block) block.eval(this);
-    return Body.mk(body.vars(), block, body.loc());
+    currentFG = tc.flowGraph(implementation);
+    dfs(implementation.body().block().commands().get(0));
+    Body newBody = (Body) implementation.body().eval(this);
+    if (newBody != implementation.body()) {
+      implementation = Implementation.mk(
+          implementation.attributes(),
+          implementation.sig(),
+          newBody,
+          implementation.loc());
+    }
+    return implementation;
   }
 
   @Override public void see(BreakCmd breakCmd) {

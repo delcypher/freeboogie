@@ -156,7 +156,7 @@ public class VcGenerator extends Transformer {
     Signature sig = implementation.sig();
     log("Checking implementation " + sig.name() + " at " + sig.loc());
 //System.out.println("body " + (vcgen.typeChecker() != null));
-    vcgen.setCurrentBody(implementation.body());
+    vcgen.prepareFor(implementation);
     SmtTerm vc = vcgen.vc();
     lowLevelAxiomBag.clear();
     vc.collectAxioms(lowLevelAxiomBag);

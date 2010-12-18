@@ -47,7 +47,7 @@ public class FlowGraphDumper extends Transformer {
       impl.loc().toString().replace(':', '-');
     try {
       final PrintWriter w = new PrintWriter(new File(directory, name));
-      SimpleGraph<Command> fg = tc.flowGraph(body);
+      SimpleGraph<Command> fg = tc.flowGraph(impl);
       w.println("digraph \"" + name + "\" {");
       final HashMap<Command, String> blockNames = Maps.newHashMap();
       fg.iterNode(new Closure<Command>() {

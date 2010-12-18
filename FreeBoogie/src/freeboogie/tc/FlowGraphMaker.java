@@ -30,7 +30,7 @@ public class FlowGraphMaker extends Transformer {
     |nextCommand| always points the next command in the innermost
     such list, or |null| if the command being visited is the last
     one in the innermost such list. In turn, blocks appear only
-    in implementation bodies, while bodies, and if branches. A
+    in `implementation bodies', `while' bodies, and `if' branches. A
     second stack, |enclosingScope|, keeps track of these. Note
     that |nextCommand.size()==enclosingScope.size()| whenever
     a command is visited.
@@ -75,17 +75,18 @@ public class FlowGraphMaker extends Transformer {
   private ArrayList<Command> nextCommand = Lists.newArrayList();
   private ArrayList<Ast> enclosingScope = Lists.newArrayList();
 
+  // TODO(radugrigore): Should this be handed over from the client?
   // Used for handling goto (but *not* for handling break).
   private LabelsCollector labelsCollector;
 
   // Used for querying |labelsCollector|.
-  private Body currentBody;
+  private Implementation currentImplementation;
   
   // the flow graph currently being built
   private SimpleGraph<Command> currentFlowGraph;
 
-  // maps bodies to their flowgraphs
-  private HashMap<Body, SimpleGraph<Command>> flowGraphs;
+  // maps implementations to their flowgraphs
+  private HashMap<Implementation, SimpleGraph<Command>> flowGraphs;
   
   // the detected problems 
   private List<FbError> errors;
@@ -122,8 +123,12 @@ public class FlowGraphMaker extends Transformer {
 
 
   /** Returns the command flow graph for {@code body}. */
-  public SimpleGraph<Command> flowGraph(Body body) {
-    return flowGraphs.get(body);
+  public SimpleGraph<Command> flowGraph(Implementation implementation) {
+    return flowGraphs.get(implementation);
+  }
+
+  public LabelsCollector labels() {
+    return labelsCollector;
   }
   
   // === helpers ===
@@ -136,26 +141,29 @@ public class FlowGraphMaker extends Transformer {
   }
   
   // BEGIN top-level methods {{{
-  @Override public void see(Body body) {
-    // initialize graph
-    currentFlowGraph = new SimpleGraph<Command>();
-    flowGraphs.put(body, currentFlowGraph);
-
+  @Override public void see(Implementation implementation) {
     // build graph
-    enclosingScope.add(body);
-    currentBody = body;
-    body.block().eval(this);
-    enclosingScope.remove(enclosingScope.size() - 1);
+    currentFlowGraph = new SimpleGraph<Command>();
+    flowGraphs.put(implementation, currentFlowGraph);
+    currentImplementation = implementation;
+    implementation.body().eval(this);
 
-    // check for reachability
+    // check reachability
+    // XXX check
     seenCommands.clear();
-    ImmutableList<Command> commands = body.block().commands();
+    ImmutableList<Command> commands = implementation.body().block().commands();
     if (commands.isEmpty()) return;
     dfs(commands.get(0));
-    for (Command c : labelsCollector.getAllCommands(body)) {
+    for (Command c : labelsCollector.allCommands(implementation)) {
       if (!seenCommands.contains(c))
         warnings.add(new FbError(FbError.Type.UNREACHABLE, c, rep(c)));
     }
+  }
+
+  @Override public void see(Body body) {
+    enclosingScope.add(body);
+    body.block().eval(this);
+    enclosingScope.remove(enclosingScope.size() - 1);
   }
 
   @Override public void see(Block block) {
@@ -249,7 +257,7 @@ public class FlowGraphMaker extends Transformer {
   @Override public void see(GotoCmd gotoCmd) {
     currentFlowGraph.node(gotoCmd);
     for (String s : gotoCmd.successors()) {
-      Command next = labelsCollector.getCommand(currentBody, s);
+      Command next = labelsCollector.command(currentImplementation, s);
       if (next == null)
         errors.add(new FbError(FbError.Type.MISSING_BLOCK, gotoCmd, s));
       else 
