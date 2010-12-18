@@ -143,6 +143,7 @@
         srcdir="src:generated-src"
         destdir="classes" 
         optimize="yes"
+        includeAntRuntime="true"
         debug="${debug}">
       <classpath refid="classpath" /> 
       <compilerarg value="-Xlint:all" />
