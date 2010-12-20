@@ -1,0 +1,2 @@
+#!/bin/bash
+ls -1 *.bpl | LC_ALL=C sort | xargs fb

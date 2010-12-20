@@ -2,3 +2,6 @@ call_desugar
 generics
 havoc_desugar
 loop_cutter
+passivator
+tc2.error
+vcgen

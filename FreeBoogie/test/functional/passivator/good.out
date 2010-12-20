@@ -1,0 +1,4 @@
+ OK: p at global.bpl:3:11
+ OK: q at global.bpl:8:11
+ OK: p at goto.bpl:3:11
+ OK: p at if-else.bpl:1:11
