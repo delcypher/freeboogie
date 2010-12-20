@@ -31,6 +31,6 @@ public class YesSmtProver extends Prover<SmtTerm> {
 
   private void analyzeSmtTerm(String prefix, SmtTerm s) {
     SmtTerm u = SmtTerms.eliminateSharing(s, builder);
-    System.out.printf("DUMMYPROVER %s %d %d %d\n", prefix, Statistics.nodesCount(s), Statistics.printSize(s), Statistics.printSize(u));
+//DBG    System.out.printf("DUMMYPROVER %s %d %d %d\n", prefix, Statistics.nodesCount(s), Statistics.printSize(s), Statistics.printSize(u));
   }
 }

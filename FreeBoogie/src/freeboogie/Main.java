@@ -41,8 +41,8 @@ import static freeboogie.cli.FbCliOptionsInterface.*;
   printed using {@code FlowGraphDumper}, and the symbol table is
   printed by some helper code from the {@code Main} class itself.
 
-  @see freeboogie.astutil.PrettyPrinter
-  @see freeboogie.dumpers.FlowGraphDumper
+  @see freeboogie.ast.PrettyPrinter
+  @see freeboogie.ast.FlowGraphDumper
  */
 public class Main {
 
