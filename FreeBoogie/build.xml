@@ -1,12 +1,5 @@
-<!-- 
-  When modifying this file please make sure that:
-   - All generated files are removed by the "clean" target.
-   - There are no tabs, only spaces.
--->
-
 <project name="FreeBoogie" default="compile" basedir=".">
   <description>infrastructure for handling Boogie code</description>
-
   <!-- {{{ set properties for this build, and helpers -->
   <property file="global.properties"/>
   <property file="local.properties"/>
@@ -19,20 +12,14 @@
     <echo>WARNING: You won't see these warnings again.</echo>
   </target>
   <!-- }}} -->
-
-  <!-- {{{ properties that are computed -->
-  <property name="cli-dst-dir" location="generated-src/freeboogie/cli"/>
-  <property name="ast-src-dir" location="src/${ast-dir}"/>
-  <property name="ast-dst-dir" location="generated-src/${ast-dir}"/>
-  <property name="parser-src-dir" location="src/${parser-dir}"/>
-  <property name="parser-dst-dir" location="generated-src/${parser-dir}"/>
+  <!-- {{{ classpath -->
   <path id="classpath">
     <fileset dir="lib" includes="*.jar" />
     <pathelement path="classes"  />
   </path>
   <!-- }}} -->
-
   <!-- {{{ custom tasks -->
+  <!-- TODO Activate these again ?
   <taskdef
     resource="checkstyletask.properties"
     classpath="lib/checkstyle.jar:lib/antlr-2.7.7.jar:lib/commons-beanutils.jar:lib/commons-collections3.jar:lib/commons-logging.jar" />
@@ -40,9 +27,80 @@
     name="findbugs" 
     classname="edu.umd.cs.findbugs.anttask.FindBugsTask"
     classpath="lib/findbugs-ant.jar"/>
+  -->
+  <macrodef name="download">
+    <attribute name="todir" default="."/>
+    <attribute name="url"/>
+    <sequential>
+      <copy todir="@{todir}" flatten="true">
+        <url url="@{url}"/>
+      </copy>
+    </sequential>
+  </macrodef>
+  <macrodef name="get-fb-package">
+    <attribute name="dir"/>
+    <attribute name="jar"/>
+    <sequential>
+      <ant inheritAll="false" dir="../@{dir}" target="dist"/>
+      <copy todir="lib" file="../@{dir}/dist/@{jar}"/>
+    </sequential>
+  </macrodef>
   <!-- TODO(radugrigore): task for clops -->
   <!-- }}} -->
+  <!-- download useful things that shouldn't stay in our repo {{{ -->
+  <target name="check_libs">
+    <available property="libs_ok" file="lib/ok"/>
+  </target>
+  <target name="get_libs" depends="check_libs" unless="libs_ok">
+    <move file="lib" tofile="lib.old" failOnError="false"/>
+    <!--get libs from same repo {{{-->
+    <get-fb-package dir="AstGen" jar="${astgen.jar}"/>
+    <get-fb-package dir="GenericUtils" jar="${genericutils.jar}"/>
+    <!--}}}-->
+    <!--get guava {{{-->
+    <mkdir dir="tmp"/>
+    <download todir="tmp" url="http://guava-libraries.googlecode.com/files/guava-${guava.ver}.zip"/>
+    <unzip src="tmp/guava-${guava.ver}.zip" dest="tmp"/>
+    <copy todir="lib" file="tmp/guava-${guava.ver}/${guava.jar}"/>
+    <delete dir="tmp"/>
+    <!--}}}-->
+    <!--get antlr {{{-->
+    <download todir="lib" url="http://www.antlr.org/download/${antlr.jar}"/>
+    <!--}}}--> 
+    <!--get clops {{{-->
+    <mkdir dir="tmp"/>
+    <download todir="tmp" url="${sourceforge-dl}/clops/clops/${clops.ver}/clops-${clops.ver}.zip"/>
+    <unzip src="tmp/clops-${clops.ver}.zip" dest="tmp"/>
+    <copy todir="lib">
+      <fileset dir="tmp/lib"/>
+    </copy>
+    <delete dir="tmp"/>
+    <!--}}}-->
+    <!--get jline {{{-->
+    <mkdir dir="tmp"/>
+    <download todir="tmp" url="${sourceforge-dl}/jline/jline/${jline.ver}/jline-${jline.ver}.zip"/>
+    <unzip src="tmp/jline-${jline.ver}.zip" dest="tmp"/>
+    <copy file="tmp/jline-${jline.ver}/${jline.jar}" todir="lib"/>
+    <delete dir="tmp"/>
+    <!--}}}-->
+    <!-- TODO: findbugs and checkstyle -->
+    <touch file="lib/ok"/>
+    <delete dir="lib.old"/>
+  </target>
 
+  <target name="check_dev_docs">
+    <available property="dev_docs_ok" file="dev_docs/ok"/>
+  </target>
+  <target name="get_dev_docs" depends="check_dev_docs" unless="dev_docs_ok">
+    <download todir="dev_docs" url="http://combination.cs.uiowa.edu/smtlib/papers/smt-lib-reference-v2.0-r10.12.21.pdf"/>
+    <download todir="dev_docs" url="http://research.microsoft.com/en-us/um/people/leino/papers/krml178.pdf"/>
+    <download todir="dev_docs" url="http://pm.ethz.ch/projects/student_docs/Samuel_Willimann/Samuel_Willimann_MA_paper.pdf"/>
+    <touch file="dev_docs/ok"/>
+  </target>
+
+  <target name="external_dependencies"
+      depends="get_libs,get_dev_docs"/>
+  <!-- }}} -->
   <!-- {{{ code generation and related -->
   <target 
       name="generate_ast" 
@@ -52,7 +110,7 @@
     <antcall target="clean_ast"/>
     <mkdir dir="${ast-dst-dir}" />
     <touch file="generated-src/ast.timestamp"/>
-    <java fork="yes" dir="${ast-dst-dir}" jar="lib/${astgen-jar}">
+    <java fork="yes" dir="${ast-dst-dir}" jar="lib/${astgen.jar}">
       <arg value="${ast-src-dir}/fb.ag" />
       <arg value="${ast-src-dir}/classes.tpl" />
       <arg value="${ast-src-dir}/evaluator.tpl" />
@@ -129,10 +187,10 @@
         property="cli.notRequired"
         targetfile="generated-src/cli.timestamp">
       <srcfiles file="src/freeboogie/freeboogie.clo"/>
+      <srcfiles file="src/freeboogie/usage.vm"/>
     </uptodate>
   </target>
   <!-- }}} -->
-
   <!-- {{{ compilation and documentation targets -->
   <target
       name="compile"
@@ -140,10 +198,22 @@
       description="compile the source ">
     <mkdir dir="classes"/>
     <javac 
+        srcdir="generated-src"
+        sourcepath="src"
+        destdir="classes"
+        optimize="yes"
+        includeAntRuntime="no"
+        debug="${debug}">
+      <!-- don't lint-warn for generated stuff -->
+      <classpath refid="classpath"/>
+      <compilerarg value="-Xlint:none" />
+      <compilerarg value="-Xmaxerrs" /><compilerarg value="10" />
+    </javac>
+    <javac 
         srcdir="src:generated-src"
         destdir="classes" 
         optimize="yes"
-        includeAntRuntime="true"
+        includeAntRuntime="no"
         debug="${debug}">
       <classpath refid="classpath" /> 
       <compilerarg value="-Xlint:all" />
@@ -159,7 +229,6 @@
     </javadoc>
   </target>
   <!-- }}} -->
-
   <!-- {{{ distribution -->
   <target
       name="dist"
@@ -183,7 +252,6 @@
     <copy file="lib/${jline-jar}" todir="dist/lib" />
   </target>
   <!-- }}} -->
- 
   <!-- {{{ test targets -->
 
   <target name="functional_test" depends="compile" description="run functional tests">
@@ -195,7 +263,6 @@
 
   <target name="test" depends="functional_test" description="run all tests"></target>
   <!-- }}} -->
-
   <!-- {{{ static analyzes -->
   <target name="style">
     <checkstyle config="style.xml">
@@ -216,7 +283,6 @@
     </findbugs>
   </target>
   <!-- }}} -->
-
   <!-- {{{ cleanup targets -->
   <target name="clean_ast" description="removes AST generated files">
     <delete dir="${ast-dst-dir}" />
@@ -250,6 +316,19 @@
       <fileset dir="" includes="**/*.log" />
     </delete>
     <defaultexcludes default="true" />
+  </target>
+
+  <target 
+      name="clean_all"
+      depends="clean"
+      description="also remove libraries and articles">
+    <delete dir="lib"/>
+    <delete>
+      <fileset dir="dev_docs">
+        <include name="*.pdf"/>
+        <include name="ok"/>
+      </fileset>
+    </delete>
   </target>
   <!-- }}} -->
 </project>
