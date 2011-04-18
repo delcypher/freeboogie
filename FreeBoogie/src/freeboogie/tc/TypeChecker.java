@@ -450,7 +450,7 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
       return memo(unaryOp, boolType);
     default:
       assert false;
-      return null; // dumb compiler
+      return null;
     }
   }
 

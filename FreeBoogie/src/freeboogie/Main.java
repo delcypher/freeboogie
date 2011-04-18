@@ -15,9 +15,7 @@ import org.antlr.runtime.RecognitionException;
 
 import freeboogie.ast.*;
 import freeboogie.backend.ProverException;
-import freeboogie.cli.FbCliOptionsInterface;
-import freeboogie.cli.FbCliParser;
-import freeboogie.cli.FbCliUtil;
+import freeboogie.cli.*;
 import freeboogie.parser.FbLexer;
 import freeboogie.parser.FbParser;
 import freeboogie.tc.*;
@@ -85,17 +83,11 @@ public class Main {
 
   /** Process the command line and call {@code run()}. */
   public static void main(String[] args) {
-    FbCliParser p = new FbCliParser();
-    List<CLError> ce = p.parse(args);
-    if (!ce.isEmpty()) {
-      for (CLError e : ce) {
-        // TODO: report errors
-      }
-      badUsage();
-      return;
-    }
-    Main m = new Main();
-    m.run(p.getOptionStore());
+    FbCliParseResult pr = FbCliParser.parse(args, "fb");
+    if (pr.successfulParse())
+      new Main().run(pr.getOptionStore());
+    else
+      pr.printErrors(System.err);
   }
 
   /** Process each file. */
@@ -108,9 +100,9 @@ public class Main {
     setupLogging();
     initialize();
 
-    if (opt.getFiles().isEmpty())
+    if (!opt.isFilesSet())
       normal("Nothing to do. Try --help.");
-    for (File f : opt.getFiles()) {
+    else for (File f : opt.getFiles()) {
       try {
         verbose("Processing " + f.getPath());
         if (!parse(f)) continue;
@@ -138,7 +130,8 @@ public class Main {
       verbose("Can't write to log file " + opt.getLogFile() + ".");
     }
     log.level(opt.getLogLevel());
-    for (LogCategories c : opt.getLogCategories()) log.enable(c);
+    if (opt.isLogCategoriesSet()) // TODO: fix this in clops
+      for (LogCategories c : opt.getLogCategories()) log.enable(c);
     log.verbose(true);
   }
 
