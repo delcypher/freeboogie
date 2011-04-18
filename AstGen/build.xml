@@ -1,17 +1,8 @@
-<!-- 
-  When modifying this file please make sure that:
-   - All generated files are removed by the "clean" target.
-   - Do *not* use tabs.
--->
-
 <project name="AstGen" default="dist" basedir=".">
   <description>Code generator from abstract grammars</description>
 
   <!-- set global properties for this build -->
-  <property name="debug" value="yes" />
-  <property name="version" value="0.2"/>
-  <property name="genericutils-jar" value="genericutils-0.2.jar"/>
-  <property name="gcollect-jar" value="google-collect-1.0-rc1.jar"/>
+  <property file="global.properties"/>
   <path id="classpath">
     <fileset dir="lib" includes="*.jar" />
     <pathelement path="build"  />
@@ -19,8 +10,13 @@
 
   <target name="compile">
     <mkdir dir="build" />
-    <javac srcdir="src" destdir="build"
-        deprecation="yes" optimize="yes" debug="${debug}">
+    <javac 
+        srcdir="src" 
+        destdir="build"
+        deprecation="yes" 
+        optimize="yes" 
+        debug="${debug}"
+        includeAntRuntime="no">
       <classpath refid="classpath" />
       <compilerarg value="-Xlint:all" />
     </javac>
@@ -50,11 +46,11 @@
       <manifest>
         <attribute name="Main-Class" value="astgen.Main"/>
         <attribute name="Class-Path" 
-          value="${genericutils-jar} ${gcollect-jar}" />
+          value="${genericutils.jar} ${guava.jar}" />
       </manifest>
     </jar>
-    <copy file="lib/${genericutils-jar}" todir="dist" />
-    <copy file="lib/${gcollect-jar}" todir="dist" />
+    <copy file="lib/${genericutils.jar}" todir="dist" />
+    <copy file="lib/${guava.jar}" todir="dist" />
   </target>
 
 
