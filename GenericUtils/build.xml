@@ -2,7 +2,7 @@
   <description>General purpose data structures algorithms</description>
 
   <!-- set global properties for this build -->
-  <property name="gcollect-jar" value="google-collect-1.0-rc1.jar"/>
+  <property name="guava.jar" value="guava-r08.jar"/>
   <property name="debug" value="yes" />
   <property name="version" value="0.2"/>
   <path id="classpath">
@@ -35,10 +35,10 @@
     <jar destfile="dist/genericutils-${version}.jar" 
          basedir="build">
       <manifest>
-        <attribute name="Class-Path" value="${gcollect-jar}"/>
+        <attribute name="Class-Path" value="${guava.jar}"/>
       </manifest>
     </jar>
-    <copy file="lib/${gcollect-jar}" todir="dist"/>
+    <copy file="lib/${guava.jar}" todir="dist"/>
   </target>
 
 
