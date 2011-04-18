@@ -1,7 +1,8 @@
 package freeboogie.backend;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.common.collect.ImmutableList;
 import genericutils.Err;
@@ -193,6 +194,13 @@ public class TermOfExpr<T extends Term<T>> extends Evaluator<T> {
     return null;
   }
 
+  @Override public T eval(Slice slice) {
+    return mk("extract", ImmutableList.of(
+        slice.bv().eval(this),
+        slice.high().eval(this),
+        slice.low().eval(this)));
+  }
+  
   @Override public T eval(BinaryOp binaryOp) {
     Expr left = binaryOp.left();
     Expr right = binaryOp.right();
@@ -245,6 +253,8 @@ public class TermOfExpr<T extends Term<T>> extends Evaluator<T> {
       return not(mk("Tnand", l, r));
     case OR:
       return or(l, r);
+    case CONCAT:
+      return mk("concat", l, r);
     default:
       Err.internal("Unknown binary operator (" + binaryOp.op() + ").");
       return null;
@@ -298,7 +308,7 @@ public class TermOfExpr<T extends Term<T>> extends Evaluator<T> {
     return decorate(id, term.mk(id, a, b));
   }
 
-  private T mk(String id, ArrayList<T> a) {
+  private T mk(String id, ImmutableList<T> a) {
     return decorate(id, term.mk(id, a));
   }
 }

@@ -107,6 +107,9 @@ public abstract class TermBuilder<T extends Term<T>> {
     def("Texists_int", new Sort[]{Sort.VARINT, Sort.BOOL}, Sort.BOOL);
     def("Texists_bool", new Sort[]{Sort.VARBOOL, Sort.BOOL}, Sort.BOOL);
 
+    // TODO: Check this. (It's in SMT.)
+    def("concat", new Sort[]{Sort.INT, Sort.INT}, Sort.INT);
+    def("extract", new Sort[]{Sort.INT, Sort.INT, Sort.INT}, Sort.INT);
 
     pushDef(); // mark the end of the prover builtin definitions
 
