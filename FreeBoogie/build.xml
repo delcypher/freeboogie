@@ -72,7 +72,7 @@
     <download todir="tmp" url="${sourceforge-dl}/clops/clops/${clops.ver}/clops-${clops.ver}.zip"/>
     <unzip src="tmp/clops-${clops.ver}.zip" dest="tmp"/>
     <copy todir="lib">
-      <fileset dir="tmp/lib"/>
+      <fileset dir="tmp/clops-${clops.ver}/lib"/>
     </copy>
     <delete dir="tmp"/>
     <!--}}}-->
@@ -104,7 +104,7 @@
   <!-- {{{ code generation and related -->
   <target 
       name="generate_ast" 
-      depends="check_ast_uptodate"
+      depends="check_ast_uptodate,external_dependencies"
       unless="ast.notRequired"
       description="generates AST">
     <antcall target="clean_ast"/>
@@ -132,7 +132,7 @@
 
   <target 
       name="generate_parser" 
-      depends="check_parser_uptodate"
+      depends="check_parser_uptodate,external_dependencies"
       unless="parser.notRequired">
     <mkdir dir="${parser-dst-dir}" />
     <touch file="generated-src/parser.timestamp"/>
@@ -145,7 +145,7 @@
 
   <target 
       name="generate_cli_parser" 
-      depends="check_cli_uptodate"
+      depends="check_cli_uptodate,external_dependencies"
       unless="cli.notRequired">
     <mkdir dir="${cli-dst-dir}" />
     <touch file="generated-src/cli.timestamp"/>
@@ -194,7 +194,7 @@
   <!-- {{{ compilation and documentation targets -->
   <target
       name="compile"
-      depends="generate_code"
+      depends="generate_code,external_dependencies"
       description="compile the source ">
     <mkdir dir="classes"/>
     <javac 
@@ -232,7 +232,7 @@
   <!-- {{{ distribution -->
   <target
       name="dist"
-      depends="compile"
+      depends="compile,external_dependencies"
       description="generate the distribution">
     <mkdir dir="dist" />
     <mkdir dir="dist/lib" />
@@ -332,4 +332,5 @@
   </target>
   <!-- }}} -->
 </project>
-
+<!-- vim:indentexpr=:
+-->
