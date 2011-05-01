@@ -8,7 +8,7 @@ This template generates code for AST classes.
 \def{mtn_list}{\members[,]{\mtn}}
 
 \classes{\file{\ClassName.java}
-/** Do NOT edit. See normal_classes.tpl instead. */
+/** Do NOT edit. See classes.tpl instead. */
 package freeboogie.ast;
 
 import com.google.common.base.Supplier;
