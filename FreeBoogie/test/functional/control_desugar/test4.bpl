@@ -1,4 +1,5 @@
 axiom (forall x : int :: x % 2 == 0 || (x + 1) % 2 == 0);
+axiom (forall x : int :: x % 2 == 0 || x % 2 == 1);
 
 // Varied breaks.
 procedure p(x : int) returns(y : int) 

@@ -34,6 +34,7 @@ public class FbError {
     IP_CNT_MISMATCH("Implementation-Procedure parameter count mismatch."),
     LE("Condition %0 <= %1 not met."),
     MISSING_BLOCK("Inexistent label %."),
+    REPEATED_LABEL("Label '%0' appears multiple times in '%1'."),
     NEED_ARRAY("Must be a map."),
     PROC_MISSING("Implementation without procedure."),
     REQ_SPECIALIZATION("Explicit specialization required for %0 at %1."),

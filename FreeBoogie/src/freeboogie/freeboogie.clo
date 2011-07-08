@@ -6,28 +6,14 @@ ARGS::
   Files :{} :{file-list} :[mustExist,canBeDir="false",between="",allowMultiple="false"]
     :"Configure the list of files to check."
 
-  SeriesParallelCheck :{"--series-parallel-check", "-spc"}
-    :[allowArg="false"]
-    :"Checks if the flowgraphs of the given implementations are 
-      series--parallel. A (two terminal) series--parallel graph is either
-      an edge or the series composition of two series--parallel graphs or
-      the parallel composition of two series--parallel graphs. For the
-      purposes of this check a unique exit node is added to the graph,
-      and all the real exit nodes go to this one."
- 
-  SkipHavocLoopVariables :{"--skip-havoc", "-sh"} :[allowArg="false"]
-    :"Do not havoc variables changed in a loop upon entering the loop.
-      This is unsound if loops are cut later."
-  SkipAskProver :{"--skip-prover", "-sp"} :[allowArg="false"]
-    :"Do not ask the prover if the VC is valid."
-  RunToHavocLoopVariables :{"--do-havoc", "-dh"} :[allowArg="false"]
-    :"Skip all the phases after havocking loop variables."
-  RunToCutLoops :{"--do-cut-loops", "--do-cut", "-dc"} : [allowArg="false"]
-    :"Skip all the phases after cutting backedges in the flowgraph."
-  CheckOnly :{"--check-only"}: {string}
+  // select what to do
+  StageCount :{"--stage-count", "-sc"} :{int} :[default="1000"]
+    :"Stops after processing the given number of stages."
+  CheckProcedure :{"--check-procedure", "-cp"}: {string}
     :"Check only the procedures whose name match the given regular
       expression."
 
+  // configure how various stages work
   PassivatorOpt :{"--passivator"} :{enum}
     :[choices="OPTIM,ESCJAVA", default="optim"]
     :"The optim passivator introduces a minimum number of new
@@ -39,7 +25,7 @@ ARGS::
       transformed Boogie."
   AssumeAsserts :{"--assume-asserts", "-aa"}
     :"If set, then 'assert X' is treated as 'assert X; assume X'."
-  ProverOpt :{"--prover", "-p"} :{enum} 
+  ProverOpt :{"--prover", "-p"} :{enum}
     :[choices="SIMPLIFY,YESMAN", default="simplify"]
     :"Configure which prover to use. The prover 'yes' can be useful
       for debugging (and for doing demos) because it always says that
@@ -48,22 +34,23 @@ ARGS::
     :"Configure the command line used to start a prover. The default
       depends on the selected prover."
 
-  ReportOn :{"--report-on", "--out-categories", "-oc"} :{enum-list}
+  // control output
+  ReportOn :{"--out-categories", "-oc"} :{enum-list}
     :[choices="MAIN,PARSER",default="MAIN"]
     :"Configure what type of information should go to stdout.
       By default all categories are disabled. Errors go to stderr."
-  ReportLevel :{"--report-level", "--out-level", "-ol"} :{enum}
+  ReportLevel :{"--out-level", "-ol"} :{enum}
     :[choices="DEBUG,VERBOSE,NORMAL,QUIET", default="normal"]
     :"Configure how much information goes to stdout."
-  LogFile :{"--log-file", "-lf"} :{file} 
+  LogFile :{"--log-file", "-lf"} :{file}
     :[canBeDir="false",default="freeboogie.log"]
     :"Configure where logging should be done. If the file does not exist
       it is created; if the file does exist the new log messages are appended."
-  LogCategories :{"--log-categories", "-lc"} :{enum-list} 
+  LogCategories :{"--log-categories", "-lc"} :{enum-list}
     :[choices="MAIN,VCGEN,PROVER,STATS,BACKEND,AST,TYPECHECK"]
-    :"Configure what type of information should go in the log file. 
+    :"Configure what type of information should go in the log file.
       By default all categories are disabled."
-  LogLevel :{"--log-level", "-ll"} :{enum} 
+  LogLevel :{"--log-level", "-ll"} :{enum}
     :[choices="INFO,WARNING,ERROR", default="warning"]
     :"Configure how much information should be logged."
   DumpIntermediateStages :{"--dump-intermediate-stages", "-dis"} :{file}
@@ -72,55 +59,43 @@ ARGS::
       The dump includes a Boogie program, its symbol table, and its
       flowgraphs."
 
+  // unusual things, perhaps to remove
+  SeriesParallelCheck :{"--series-parallel-check", "-spc"}
+    :[allowArg="false"]
+    :"Checks if the flowgraphs are series--parallel."
+
   Help :{"--help", "-h"}
     :"Display this message."
-
-  // These cannot appear on the command line.
-  MakeHavoc :{} :[default="true"]
-  CutLoops :{} :[default="true"]
-  DesugarBreak :{} :[default="true"]
-  DesugarWhile :{} :[default="true"]
-  DesugarIf :{} :[default="true"]
-  DesugarMaps :{} :[default="true"]
-  DesugarCalls :{} :[default="true"]
-  DesugarHavoc :{} :[default="true"]
-  DesugarSpec :{} :[default="true"]
-  DesugarTypeSynonyms :{} :[default="true"]
-  Passivate :{} :[default="true"]
-  DoVcGen :{} :[default="true"]
 
 FORMAT::
   (Option | Files)* | Help;
 
 WHERE::
   Option:
-    ActionOption |
-    StageOption |
+    SelectOption |
     ConfigOption |
-    OutputOption;
+    OutputOption |
+    WeirdOption;
 
-  ActionOption: SeriesParallelCheck;
-  StageOption:
-    SkipHavocLoopVariables |
-    SkipAskProver |
-    RunToHavocLoopVariables |
-    RunToCutLoops |
-    CheckOnly;
+  SelectOption:
+    StageCount |
+    CheckProcedure;
   ConfigOption:
     PassivatorOpt |
     VcMethodOpt |
     AssumeAsserts |
     ProverOpt |
-    ProverCommandLineOpt |
-    BoogieVersionOpt;
-  OutputOption: 
+    ProverCommandLineOpt;
+  OutputOption:
     LogFile |
     LogCategories |
     LogLevel |
     ReportOn |
     ReportLevel |
     DumpIntermediateStages;
+  WeirdOption:
+    SeriesParallelCheck;
 
 OVERRIDES::
-  {$(ProverOpt).toLowerCase().equals("simplify") && !$(ProverCommandLineOpt?)} -> 
+  {$(ProverOpt).toLowerCase().equals("simplify") && !$(ProverCommandLineOpt?)} ->
     ProverCommandLineOpt := {"z3 -si"};

@@ -9,8 +9,8 @@ import freeboogie.ast.*;
 
 /**
   Constructs a {@code SymbolTable} from an AST.
- 
-  @author rgrig 
+
+  @author rgrig
   @author miko
  */
 @SuppressWarnings("unused") // lots of unused parameters
@@ -20,13 +20,13 @@ public class SymbolTableBuilder extends Transformer implements StbInterface {
 
   private SymbolTable symbolTable;
   private GlobalsCollector gc;
-  
-  // problems found while building the symbol table 
+
+  // problems found while building the symbol table
   private List<FbError> errors;
-  
+
   // for modifies spec we ignore the arguments
   private boolean lookInLocalScopes;
-  
+
   /**
    * Builds a symbol table. Reports name clashes (because it
    * uses {@code GlobalsCollector}. Reports undeclared variables.
@@ -34,7 +34,7 @@ public class SymbolTableBuilder extends Transformer implements StbInterface {
    * @return a list with the problems detected
    */
   @Override
-  public Program process(Program p, TcInterface typechecker) 
+  public Program process(Program p, TcInterface typechecker)
   throws ErrorsFoundException {
     typechecker = null; // NOT used later
     localVarDecl = new StackedHashMap<String, VariableDecl>();
@@ -50,16 +50,16 @@ public class SymbolTableBuilder extends Transformer implements StbInterface {
 
   @Override public SymbolTable st() { return symbolTable; }
   @Override public GlobalsCollector gc() { return gc; }
-  
+
   // === helpers ===
-  
+
   // reports an error at location l if d is null
   private <T> T check(T d, String s, Ast l) {
     if (d != null) return d;
     errors.add(new FbError(FbError.Type.UNDECL_ID, l, s));
     return null;
   }
-  
+
   private IdDecl lookupId(String s, Ast l) {
 //System.out.println("lookup " + s + " at " + l.loc());
     IdDecl r = localVarDecl.get(s);
@@ -68,7 +68,7 @@ public class SymbolTableBuilder extends Transformer implements StbInterface {
   }
 
   private void collectTypeVars(
-      Map<String, Identifier> tv, 
+      Map<String, Identifier> tv,
       ImmutableList<Identifier> ids
   ) {
     for (Identifier ai : ids) {
@@ -78,9 +78,9 @@ public class SymbolTableBuilder extends Transformer implements StbInterface {
       typeVarDecl.put(ai.id(), ai);
     }
   }
-  
+
   // === visit methods ===
-  
+
   @Override public void see(UserType userType) {
     String name = userType.name();
     Identifier tv = typeVarDecl.get(name);
@@ -131,7 +131,7 @@ public class SymbolTableBuilder extends Transformer implements StbInterface {
       VariableDecl old = scope.get(name);
       if (old != null)
         errors.add(new FbError(FbError.Type.ALREADY_DEF, variableDecl, name));
-      else 
+      else
         scope.put(name, variableDecl);
     }
     variableDecl.type().eval(this);
@@ -150,14 +150,14 @@ public class SymbolTableBuilder extends Transformer implements StbInterface {
     symbolTable.ids.seenDef(constDecl);
     constDecl.type().eval(this);
   }
-  
+
   @Override public void see(Signature signature) {
     collectTypeVars(typeVarDecl.peek(), signature.typeArgs());
     AstUtils.evalListOfVariableDecl(signature.args(), this);
     AstUtils.evalListOfVariableDecl(signature.results(), this);
   }
 
-  
+
   // === keep track of local scopes ===
   @Override public void see(Procedure procedure) {
     symbolTable.procs.seenDef(procedure);
@@ -186,7 +186,7 @@ public class SymbolTableBuilder extends Transformer implements StbInterface {
     function.sig().eval(this);
     typeVarDecl.pop();
   }
-  
+
   @Override public void see(Quantifier atomQuant) {
     localVarDecl.push();
     typeVarDecl.push();
@@ -197,23 +197,23 @@ public class SymbolTableBuilder extends Transformer implements StbInterface {
     typeVarDecl.pop();
     localVarDecl.pop();
   }
-  
+
   @Override public void see(Axiom axiom) {
     typeVarDecl.push();
     collectTypeVars(typeVarDecl.peek(), axiom.typeArgs());
     axiom.expr().eval(this);
     typeVarDecl.pop();
   }
-  
+
   @Override public void see(AssertAssumeCmd assertAssumeCmd) {
     typeVarDecl.push();
     collectTypeVars(typeVarDecl.peek(), assertAssumeCmd.typeArgs());
     assertAssumeCmd.expr().eval(this);
     typeVarDecl.pop();
   }
-  
+
   // === remember if we are below a modifies spec ===
-  
+
   @Override public void see(ModifiesSpec modifiesSpec) {
     assert lookInLocalScopes : "no nesting of modifies";
     lookInLocalScopes = false;

@@ -17,50 +17,50 @@ import static freeboogie.cli.FbCliOptionsInterface.*;
 
 /**
   Typechecks an AST.
- 
+
   It also acts more-or-less as a Facade for the whole package.
- 
+
   The typechecking works as follows. The {@code eval}
   functions associate types to nodes in the AST that represent
   expressions. The {@code check} functions verify equality modulo
   substitutions for type variables. Comparing types is done
   structurally.
-  
+
   Type checking assumes that type synonyms were desugared.
- 
-  @author rgrig 
+
+  @author rgrig
  */
 public class TypeChecker extends Evaluator<Type> implements TcInterface {
   // BEGIN data memebers {{{
   // shorthand notations
   private static final BigInteger ZERO = BigInteger.valueOf(0);
-  private static final BigInteger MAX_INT = 
+  private static final BigInteger MAX_INT =
       BigInteger.valueOf(Integer.MAX_VALUE);
 
-  private static final Logger<LogCategories, LogLevel> log = 
+  private static final Logger<LogCategories, LogLevel> log =
       Logger.<LogCategories, LogLevel>get("log");
-  
+
   // used for primitive types (so reference equality is used below)
-  private static final PrimitiveType boolType = 
+  private static final PrimitiveType boolType =
       PrimitiveType.mk(PrimitiveType.Ptype.BOOL, -1, FileLocation.unknown());
-  private static final PrimitiveType intType = 
+  private static final PrimitiveType intType =
       PrimitiveType.mk(PrimitiveType.Ptype.INT, -1, FileLocation.unknown());
-  
+
   // used to signal an error in a subexpression and to limit
   // errors caused by other errors
-  private static final PrimitiveType errType = 
+  private static final PrimitiveType errType =
       PrimitiveType.mk(PrimitiveType.Ptype.ERROR, -1, FileLocation.unknown());
-  
+
   private SymbolTable st;
   private GlobalsCollector gc;
   private FlowGraphMaker flowGraphs;
-  
+
   // detected errors
   private List<FbError> errors;
-  
+
   // maps implementations to procedures
   private UsageToDefMap<Implementation, Procedure> implProc;
-  
+
   // maps implementation params to procedure params
   private UsageToDefMap<VariableDecl, VariableDecl> paramMap;
 
@@ -88,7 +88,7 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
   /// END data members }}}
 
   // BEGIN public interface {{{
-  /** 
+  /**
    * Returns implicit specializations deduced/used by the typechecker
    * at various points in the AST. If later you want to check the
    * specialization performed for an ID then you should find the
@@ -97,34 +97,33 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
   public Map<Ast, Map<Identifier, Type>> implicitSpec() {
     return implicitSpec;
   }
- 
+
   @Override
   public Program process(Program ast) throws ErrorsFoundException {
     assert new TreeChecker().isTree(ast) : "AST is a dag instead of a tree";
 
     tvLevel = 0; // DBG
-    
+
     typeVar = new StackedHashMap<Identifier, Type>();
     enclosingTypeVar = new StackedHashMap<Identifier, Identifier>();
     implicitSpec = Maps.newHashMap();
-    
+
     // build symbol table
     SymbolTableBuilder stb = new SymbolTableBuilder();
     ast = stb.process(ast, null);
     st = stb.st();
     gc = stb.gc();
-   
+
     // check implementations
     ImplementationChecker ic = new ImplementationChecker();
     errors = ic.process(ast, gc);
     if (!errors.isEmpty()) throw new ErrorsFoundException(errors);
     implProc = ic.implProc();
     paramMap = ic.paramMap();
-    
+
     // check blocks
     flowGraphs = new FlowGraphMaker();
-    errors.addAll(flowGraphs.process(ast));
-    if (!errors.isEmpty()) throw new ErrorsFoundException(errors);
+    flowGraphs.process(ast);
 
     // do the typecheck
     AstUtils.evalListOfAxiom(ast.axioms(), this);
@@ -148,7 +147,7 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
   public LabelsCollector labels() {
     return flowGraphs.labels();
   }
-  
+
   /* The cast is ugly, I know, but it reduces significantly memory use.
     The good FIX is to have persistent data structures recording the
     extra information associated with AST nodes, and it will take some
@@ -158,23 +157,23 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
   public Map<Expr, Type> types() {
     return (Map<Expr, Type>)(Object)Collections.unmodifiableMap(evalCache);
   }
-  
+
   @Override
   public UsageToDefMap<Implementation, Procedure> implProc() {
     return implProc;
   }
-  
+
   @Override
   public UsageToDefMap<VariableDecl, VariableDecl> paramMap() {
     return paramMap;
   }
-  
+
   @Override
   public SymbolTable st() {
     return st;
   }
   // END public interface }}}
-  
+
   // BEGIN helper methods {{{
   private static void info(String s) {
     log.say(LogCategories.TYPECHECK, LogLevel.INFO, s);
@@ -183,13 +182,13 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
   private static void info(Supplier<String> s) {
     log.say(LogCategories.TYPECHECK, LogLevel.INFO, s);
   }
-  
+
   // |ast| may be used for debugging
-  private void typeVarEnter(Ast ast) { 
-    typeVar.push(); 
-    ++tvLevel; 
+  private void typeVarEnter(Ast ast) {
+    typeVar.push();
+    ++tvLevel;
   }
- 
+
   private void typeVarExit(Ast ast) {
     Map<Identifier, Type> lis = Maps.newHashMap();
     implicitSpec.put(ast, lis);
@@ -198,7 +197,7 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
     typeVar.pop();
     --tvLevel;
   }
-  
+
   // gives a TupleType with the types in that list
   private TupleType typeListOfDecl(ImmutableList<VariableDecl> l) {
     ImmutableList.Builder<Type> builder = ImmutableList.builder();
@@ -216,16 +215,16 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
   private boolean eq(PrimitiveType a, PrimitiveType b) {
     return a.ptype() == b.ptype();
   }
-  
+
   private boolean eq(MapType a, MapType b) {
     if (!eq(b.idxTypes(), a.idxTypes())) return false;  // contravariant
     return eq(a.elemType(), b.elemType()); // covariant
   }
-  
+
   private boolean eq(UserType a, UserType b) {
     return a.name().equals(b.name()) && eq(a.typeArgs(), b.typeArgs());
   }
-  
+
   private boolean eq(ImmutableList<Type> a, ImmutableList<Type> b) {
     if (a.size() != b.size()) return false;
     UnmodifiableIterator<Type> ia = a.iterator();
@@ -237,8 +236,8 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
   private boolean eq(TupleType a, TupleType b) {
     return eq(a.types(), b.types());
   }
- 
-  /* Checks whether |a| and |b| represent the same type. */ 
+
+  /* Checks whether |a| and |b| represent the same type. */
   private boolean eq(Type a, Type b) {
     if (a == b) return true; // the common case
     if (a == errType || b == errType) return true; // don't bubble up errors
@@ -246,7 +245,7 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
     // (t) == t
     a = stripTuple(a);
     b = stripTuple(b);
-    
+
     // handle type variables
     a = realType(a);
     b = realType(b);
@@ -260,7 +259,7 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
       return eq((PrimitiveType)a, (PrimitiveType)b);
     else if (a instanceof MapType && b instanceof MapType)
       return eq((MapType)a, (MapType)b);
-    else if (a instanceof UserType && b instanceof UserType) 
+    else if (a instanceof UserType && b instanceof UserType)
       return eq((UserType)a, (UserType)b);
     else if (a instanceof TupleType && b instanceof TupleType)
       return eq((TupleType) a, (TupleType) b);
@@ -346,7 +345,7 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
 
   private boolean isTypeVar(Type t) {
     Identifier ai = getTypeVarDecl(t);
-    return ai != null && 
+    return ai != null &&
         (ignoreEnclosingTypeVariables || enclosingTypeVar.get(ai) == null);
   }
 
@@ -371,18 +370,18 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
     if (getTypeVarDecl(b) != ai) {
       info(new Supplier<String>() {
         @Override public String get() {
-          return "" + ai.id() + "@" + ai.loc() + "==" + 
+          return "" + ai.id() + "@" + ai.loc() + "==" +
               TypeUtils.typeToString(bb); // this one takes time
         }
       });
-      assert tvLevel > 0 : 
+      assert tvLevel > 0 :
           "you probably need to add typeVarEnter/Exit in some places";
       typeVar.put(ai, b);
     }
   }
 
   private void mapExplicitGenerics(
-      ImmutableList<Identifier> tvl, 
+      ImmutableList<Identifier> tvl,
       ImmutableList<Type> tl
   ) {
     if (tvl.size() < tl.size()) {
@@ -394,7 +393,7 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
     UnmodifiableIterator<Type> it = tl.iterator();
     while (it.hasNext()) typeVar.put(itv.next(), it.next());
   }
-  
+
   /**
    * If {@code a} cannot be used where {@code b} is expected then an error
    * at location {@code l} is produced and {@code errors} is set.
@@ -404,7 +403,7 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
     errors.add(new FbError(FbError.Type.BAD_TYPE, l,
           TypeUtils.typeToString(a), TypeUtils.typeToString(b)));
   }
-  
+
   /** Checks that two types may be equal. */
   private void checkLenient(Type a, Type b, Ast l) {
     if (possiblyEq(a, b)) return;
@@ -428,7 +427,7 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
     errors.add(new FbError(FbError.Type.LE, l, a, b));
   }
 
-  private PrimitiveType bvt(int w) { 
+  private PrimitiveType bvt(int w) {
     return PrimitiveType.mk(PrimitiveType.Ptype.INT, w);
   }
 
@@ -513,7 +512,7 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
     }
   }
   // END visiting operators }}}
-  
+
   // BEGIN visiting expressions {{{
   @Override public Type eval(Cast cast) {
     cast.expr().eval(this);
@@ -532,8 +531,8 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
     } else if (d instanceof ConstDecl) {
       t = ((ConstDecl)d).type();
     } else {
-      assert false : 
-          "SymbolTableBuilder didn't do its job properly: " + 
+      assert false :
+          "SymbolTableBuilder didn't do its job properly: " +
           id.id() + "(" + id.loc() + ")";
     }
     assert t != null;
@@ -564,7 +563,7 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
       return memo(atomLit, boolType);
     default:
       assert false;
-      return errType; // dumb compiler 
+      return errType; // dumb compiler
     }
   }
 
@@ -586,12 +585,12 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
     FunctionDecl d = st.funcs.def(atomFun);
     Signature sig = d.sig();
     ImmutableList<VariableDecl> fargs = sig.args();
-    
+
     typeVarEnter(atomFun);
     mapExplicitGenerics(sig.typeArgs(), atomFun.types());
     Type at = typeListOfExpr(atomFun.args());
     Type fat = typeListOfDecl(fargs);
-   
+
     check(at, fat, atomFun);
     Type rt = checkRealType(typeListOfDecl(sig.results()), atomFun);
     typeVarExit(atomFun);
@@ -618,7 +617,7 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
     typeVarExit(atomMapSelect);
     return memo(atomMapSelect, et);
   }
-  
+
   @Override public Type eval(MapUpdate atomMapUpdate) {
     typeVarEnter(atomMapUpdate);
     Expr atom = atomMapUpdate.map();
@@ -628,8 +627,8 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
     Type ti = typeListOfExpr(index);
     Type tv = val.eval(this);
     if (
-        TypeUtils.eq(t, errType) || 
-        TypeUtils.eq(ti, errType) || 
+        TypeUtils.eq(t, errType) ||
+        TypeUtils.eq(ti, errType) ||
         TypeUtils.eq(tv, errType)) return memo(atomMapUpdate, errType);
     MapType mt;
     if (!(t instanceof MapType)) {
@@ -672,23 +671,23 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
     ImmutableList<VariableDecl> fargs = sig.args();
 
     typeVarEnter(callCmd);
-    
+
     // check the actual arguments against the formal ones
     Type at = typeListOfExpr(callCmd.args());
     Type fat = typeListOfDecl(fargs);
     check(at, fat, callCmd);
-    
+
     // check the assignment of the results
     Type lt = typeListOfExpr(callCmd.results());
     Type rt = typeListOfDecl(sig.results());
     check(rt, lt, callCmd);
 
     typeVarExit(callCmd);
-    
+
     return null;
   }
   // END visiting commands }}}
-  
+
   // BEGIN check booleans {{{
   private Type checkBool(ImmutableList<Identifier> tv, Expr e) {
     enclosingTypeVar.push();

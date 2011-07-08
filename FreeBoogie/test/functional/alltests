@@ -1,7 +1,11 @@
 call_desugar
+control_desugar
 generics
 havoc_desugar
+labels
 loop_cutter
+parser
 passivator
 tc2.error
+tc2.ok
 vcgen

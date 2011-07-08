@@ -15,15 +15,19 @@ public final class FbCliUtil {
     public String description;
 
     public void print(int width) {
-      if (aliases.isEmpty()) {
-        System.out.println(aliasData);
-      }
+      if (aliases.size() > 1) System.out.print('[');
+      boolean first = true;
       for (String a : aliases) {
+        if (!first) System.out.print('|');
         System.out.print(a);
-        if (!"<boolean>".equals(aliasData))
-          System.out.print("=" + aliasData + "");
-        System.out.println();
+        first = false;
       }
+      if (aliases.size() > 1) System.out.print(']');
+      if (!"<boolean>".equals(aliasData)) {
+        if (aliases.size() > 0) System.out.print('=');
+        System.out.print(aliasData);
+      }
+      System.out.println();
       for (String line : StringUtil.format(description, width - 5))
         System.out.println("     " + line);
     }
@@ -43,9 +47,12 @@ public final class FbCliUtil {
       String x = "[" + "$!option.getPropertyValue("choices")" + "]";
       x = x.replace(',','|').replaceAll("\\([^)]*\\)","").toLowerCase();
       if (newOption.aliasData.endsWith("-list>")) x += "*";
-      String d = "$!option.getPropertyValue("default")";
-      if (!d.equals("")) x += "  (default: " + d + ")";
       newOption.aliasData = x;
+    }
+    {
+      String d = "$!option.getPropertyValue("default")";
+      if (!d.equals(""))
+        newOption.aliasData += "  (default: " + d + ")";
     }
     newOption.description = "$!option.getDescription()";
     if (!"".equals(newOption.description)) options.add(newOption);
@@ -55,9 +62,7 @@ public final class FbCliUtil {
     int w = t.getTerminalWidth() - 5;
     for (String line : StringUtil.format("$info.getDescription()", w))
       System.out.println(line);
-    for (Option o : options) {
-      System.out.println();
-      o.print(w);
-    }
+    System.out.println();
+    for (Option o : options) o.print(w);
   }
 }

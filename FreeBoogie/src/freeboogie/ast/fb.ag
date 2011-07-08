@@ -6,33 +6,33 @@ Program =
   [list] TypeDecl types,
   [list] Axiom axioms,
   [list] VariableDecl variables,
-  [list] ConstDecl constants, 
+  [list] ConstDecl constants,
   [list] FunctionDecl functions,
   [list] Procedure procedures,
   [list] Implementation implementations;
 
 // Provide a common class for AST nodes that can act as a
 // definition for an Identifier.
-IdDecl :> 
-  ConstDecl, 
+IdDecl :>
+  ConstDecl,
   VariableDecl;
 IdDecl =
   String! name,
   Type! type;
 
 // Group all elements that can have attributes.
-Declaration :> 
-  TypeDecl, 
-  Axiom, 
-  IdDecl, 
-  FunctionDecl, 
-  Procedure, 
+Declaration :>
+  TypeDecl,
+  Axiom,
+  IdDecl,
+  FunctionDecl,
+  Procedure,
   Implementation;
 Declaration =
   [list] Attribute attributes;
 
-TypeDecl = 
-  boolean finite, 
+TypeDecl =
+  boolean finite,
   String! name,
   [list] Identifier typeArgs, // TODO(radugrigore): rename to typeVars
   Type type; // non-null when this is a type synonym
@@ -43,9 +43,9 @@ Axiom =
 VariableDecl =
   [list] Identifier typeArgs,
   Expr where;
-ConstDecl = 
+ConstDecl =
   boolean uniq;
-FunctionDecl = 
+FunctionDecl =
   Signature! sig;
 Procedure =
   Signature! sig,
@@ -57,33 +57,33 @@ Implementation =
   Body! body;
 
 // Types and constants
-Type :> 
-  MapType, 
-  PrimitiveType, 
+Type :>
+  MapType,
+  PrimitiveType,
   TupleType,
   UserType;
-MapType = 
+MapType =
   [list] Identifier typeVars,
   [list] Type idxTypes,
   Type! elemType;
-PrimitiveType = 
+PrimitiveType =
   enum(Ptype: BOOL, INT, ERROR) ptype,
   int bits;  // if -1, then it's a mathematical integer
 TupleType =
   [list] Type types;
-UserType = 
-  String! name, 
+UserType =
+  String! name,
   [list] Type typeArgs;
 
 // Signatures are used to represent uninterpreted functions
-Signature = 
-  String! name, 
+Signature =
+  String! name,
   [list] Identifier typeArgs,
   [list] VariableDecl args,
   [list] VariableDecl results;
 
 // Procedures and implementations
-Specification :> 
+Specification :>
   PrePostSpec,
   ModifiesSpec;
 Specification =
@@ -96,63 +96,63 @@ PrePostSpec =
   Expr! expr;
 ModifiesSpec =
   [list] Identifier ids;
-Body = 
+Body =
   [list] VariableDecl vars,
   Block! block;
 Block =
-  [list] Command commands; 
+  [list] Command commands;
 
 // Commands
-Command :> 
-  AssertAssumeCmd, 
-  AssignmentCmd, 
+Command :>
+  AssertAssumeCmd,
+  AssignmentCmd,
   BreakCmd,
-  CallCmd, 
+  CallCmd,
   GotoCmd,
   HavocCmd,
   IfCmd,
   WhileCmd;
 Command =
   [list] String labels;
-AssignmentCmd = 
+AssignmentCmd =
   [list] OneAssignment assignments;
 OneAssignment =
   Identifier lhs,
   Expr rhs;
 BreakCmd =
   String successor;
-AssertAssumeCmd = 
-  enum(CmdType: ASSERT, ASSUME) type, 
-  [list] Identifier typeArgs, 
+AssertAssumeCmd =
+  enum(CmdType: ASSERT, ASSUME) type,
+  [list] Identifier typeArgs,
   Expr! expr;
 GotoCmd =
   [list] String successors; // if successors.isEmpty() then it's "return"
-HavocCmd = 
+HavocCmd =
   [list] Identifier ids;
-CallCmd = 
-  String! procedure, 
-  [list] Type types, 
+CallCmd =
+  String! procedure,
+  [list] Type types,
   [list] Identifier results,
   [list] Expr args;
-WhileCmd = 
-  Expr condition, 
-  [list] LoopInvariant inv, 
+WhileCmd =
+  Expr condition,
+  [list] LoopInvariant inv,
   Block body;
 IfCmd =
   Expr! condition,
   Block! yes,
   Block no;
-LoopInvariant = 
-  boolean free, 
+LoopInvariant =
+  boolean free,
   Expr! expr;
 
-Attribute = 
-  String! type, 
+Attribute =
+  String! type,
   [list] Expr exprs;
 
 // Expressions
-Expr :> 
-  BinaryOp, 
+Expr :>
+  BinaryOp,
   BooleanLiteral,
   Cast,
   FunctionApp,
@@ -164,7 +164,7 @@ Expr :>
   Quantifier,
   Slice,
   UnaryOp;
-BinaryOp = 
+BinaryOp =
   enum(Op:
     PLUS,MINUS,
     MUL,DIV,MOD,
@@ -173,26 +173,26 @@ BinaryOp =
     EQUIV,IMPLIES,
     AND,OR,
     CONCAT) op,
-  Expr! left, 
+  Expr! left,
   Expr! right;
 Cast =
   Expr! expr,
   Type! type;
-UnaryOp = 
-  enum(Op: MINUS, NOT) op, 
+UnaryOp =
+  enum(Op: MINUS, NOT) op,
   Expr! expr;
-BooleanLiteral = 
+BooleanLiteral =
   enum(Type: FALSE, TRUE) val;
-NumberLiteral = 
+NumberLiteral =
   FbInteger value;
-Identifier = 
-  String! id, 
+Identifier =
+  String! id,
   [list] Type types;
-FunctionApp = 
-  String! function, 
-  [list] Type types, 
+FunctionApp =
+  String! function,
+  [list] Type types,
   [list] Expr args;
-OldExpr = 
+OldExpr =
   Expr! expr;
 Quantifier =
   enum(QuantType: EXISTS, FORALL) quant,
@@ -200,12 +200,12 @@ Quantifier =
   [list] VariableDecl vars,
   [list] Attribute attributes,
   Expr! expression;
-MapSelect = 
-  Expr! map, 
+MapSelect =
+  Expr! map,
   [list] Expr idx;
-MapUpdate = 
-  Expr! map, 
-  [list] Expr idx, 
+MapUpdate =
+  Expr! map,
+  [list] Expr idx,
   Expr! val;
 Slice =
   Expr! bv,

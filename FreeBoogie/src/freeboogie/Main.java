@@ -106,10 +106,12 @@ public class Main {
       try {
         verbose("Processing " + f.getPath());
         if (!parse(f)) continue;
+        int stageCount = 0;
         for (Transformer t : stages) {
+          if (stageCount++ >= opt.getStageCount()) break;
           debug("  Stage: " + t.name());
           boogie = t.process(boogie, tc);
-          dumpState(t.name());
+          dumpState(stageCount, t.name());
         }
       } catch (ErrorsFoundException e) {
         e.report();
@@ -122,11 +124,11 @@ public class Main {
     // lines is there only because of a bug in javac.
     out = Logger.<ReportOn, ReportLevel>get("out");
     log = Logger.<LogCategories, LogLevel>get("log");
-    out.sink(System.out); 
+    out.sink(System.out);
     out.level(opt.getReportLevel());
     for (ReportOn c : opt.getReportOn()) out.enable(c);
     try { log.sink(opt.getLogFile()); }
-    catch (IOException e) { 
+    catch (IOException e) {
       verbose("Can't write to log file " + opt.getLogFile() + ".");
     }
     log.level(opt.getLogLevel());
@@ -141,27 +143,23 @@ public class Main {
 
     // Initialize the Boogie transformers.
     stages = Lists.newArrayList();
-    if (opt.getDesugarTypeSynonyms()) stages.add(new TypeDesugarer());
-    if (opt.getDesugarBreak()) stages.add(new BreakDesugarer());
-    if (opt.getDesugarWhile()) stages.add(new WhileDesugarer());
-    if (opt.getDesugarIf()) stages.add(new IfDesugarer());
-    if (opt.getDesugarMaps()) stages.add(new MapRemover());
-    if (opt.getMakeHavoc()) stages.add(new HavocMaker());
-    if (opt.getCutLoops()) stages.add(new LoopCutter());
-    if (opt.getDesugarCalls()) stages.add(new CallDesugarer());
-    if (opt.getDesugarHavoc()) stages.add(new HavocDesugarer());
-    if (opt.getDesugarSpec()) stages.add(new SpecDesugarer());
-    if (opt.getPassivate()) {
-      switch (opt.getPassivatorOpt()) {
-        case OPTIM: stages.add(new Passivator()); break;
-        default: stages.add(new Passificator()); break;
-      }
+    stages.add(new TypeDesugarer());
+    stages.add(new BreakDesugarer());
+    stages.add(new WhileDesugarer());
+    stages.add(new IfDesugarer());
+    stages.add(new MapRemover());
+    stages.add(new HavocMaker());
+    stages.add(new LoopCutter());
+    stages.add(new CallDesugarer());
+    stages.add(new HavocDesugarer());
+    stages.add(new SpecDesugarer());
+    switch (opt.getPassivatorOpt()) {
+      case OPTIM: stages.add(new Passivator()); break;
+      default: stages.add(new Passificator()); break;
     }
-    if (opt.getDoVcGen()) {
-      VcGenerator vcgen = new VcGenerator();
-      vcgen.initialize(opt);
-      stages.add(vcgen);
-    }
+    VcGenerator vcgen = new VcGenerator();
+    vcgen.initialize(opt);
+    stages.add(vcgen);
   }
 
   private boolean parse(File f) {
@@ -181,12 +179,18 @@ public class Main {
     return boogie != null;
   }
 
-  private void dumpState(String stageName) {
+  private void dumpState(int stageCount, String stageName) {
     if (!opt.isDumpIntermediateStagesSet()) return;
+
+    // prepare directories
     log.say(
         LogCategories.MAIN,
         LogLevel.INFO,
         "Dump after stage " + stageName + ".");
+    stageName = String.format(
+        "%02d.%s",
+        stageCount,
+        stageName.substring(stageName.lastIndexOf('.') + 1));
     File dir = new File(opt.getDumpIntermediateStages(), stageName);
     if (!dir.mkdirs()) {
       normal("Cannot create " + dir.getPath());
@@ -235,7 +239,7 @@ public class Main {
         w.print("  usages at");
         for (U u : map.usages(d)) w.print(" " + u.loc());
         w.println();
-      }});    
+      }});
 }
 
   private void normal(String s) {

@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 # Results
 FAILED=""
@@ -36,7 +36,7 @@ while (( $# )); do
     fi; fi; fi
     shift
 done
-if [[ -z $TESTS ]]; then TESTS=`cat alltests`; fi 
+if [[ -z $TESTS ]]; then TESTS=`cat alltests`; fi
 
 # Check consistency of arguments
 if (( ($VERBOSE && $QUIET) || $HELP )); then
@@ -68,13 +68,13 @@ for t in $TESTS; do
         continue
     fi
     eval "$RUN > out 2> err" > /dev/null
-    
+
     if (( `echo $?` )); then
         error "Unexpected error while running test $t!" $t
         cd ..
         continue
     fi
-    
+
     # Check if results match the expected ones.
     diff -u $GOOD_OUT out > diff.out 2> /dev/null
     OUT_WRONG=`echo $?`
