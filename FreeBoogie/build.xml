@@ -23,8 +23,8 @@
   <taskdef
     resource="checkstyletask.properties"
     classpath="lib/checkstyle.jar:lib/antlr-2.7.7.jar:lib/commons-beanutils.jar:lib/commons-collections3.jar:lib/commons-logging.jar" />
-  <taskdef 
-    name="findbugs" 
+  <taskdef
+    name="findbugs"
     classname="edu.umd.cs.findbugs.anttask.FindBugsTask"
     classpath="lib/findbugs-ant.jar"/>
   -->
@@ -66,7 +66,7 @@
     <!--}}}-->
     <!--get antlr {{{-->
     <download todir="lib" url="http://www.antlr.org/download/${antlr.jar}"/>
-    <!--}}}--> 
+    <!--}}}-->
     <!--get clops {{{-->
     <mkdir dir="tmp"/>
     <download todir="tmp" url="${sourceforge-dl}/clops/clops/${clops.ver}/clops-${clops.ver}.zip"/>
@@ -102,8 +102,8 @@
       depends="get_libs,get_dev_docs"/>
   <!-- }}} -->
   <!-- {{{ code generation and related -->
-  <target 
-      name="generate_ast" 
+  <target
+      name="generate_ast"
       depends="check_ast_uptodate,external_dependencies"
       unless="ast.notRequired"
       description="generates AST">
@@ -130,8 +130,8 @@
     </exec>
   </target>
 
-  <target 
-      name="generate_parser" 
+  <target
+      name="generate_parser"
       depends="check_parser_uptodate,external_dependencies"
       unless="parser.notRequired">
     <mkdir dir="${parser-dst-dir}" />
@@ -143,8 +143,8 @@
     </java>
   </target>
 
-  <target 
-      name="generate_cli_parser" 
+  <target
+      name="generate_cli_parser"
       depends="check_cli_uptodate,external_dependencies"
       unless="cli.notRequired">
     <mkdir dir="${cli-dst-dir}" />
@@ -166,8 +166,8 @@
       depends="generate_ast,generate_parser,generate_cli_parser"/>
 
   <target name="check_ast_uptodate">
-    <uptodate 
-        property="ast.notRequired" 
+    <uptodate
+        property="ast.notRequired"
         targetfile="generated-src/ast.timestamp">
       <srcfiles dir="${ast-src-dir}" includes="*.tpl"/>
       <srcfiles file="${ast-src-dir}/fb.ag"/>
@@ -175,8 +175,8 @@
   </target>
 
   <target name="check_parser_uptodate">
-    <uptodate 
-        property="parser.notRequired" 
+    <uptodate
+        property="parser.notRequired"
         targetfile="generated-src/parser.timestamp">
       <srcfiles file="${parser-src-dir}/Fb.g"/>
     </uptodate>
@@ -197,31 +197,19 @@
       depends="generate_code,external_dependencies"
       description="compile the source ">
     <mkdir dir="classes"/>
-    <javac 
-        srcdir="generated-src"
-        sourcepath="src"
+    <javac
+        srcdir="src:generated-src"
         destdir="classes"
         optimize="yes"
         includeAntRuntime="no"
         debug="${debug}">
-      <!-- don't lint-warn for generated stuff -->
-      <classpath refid="classpath"/>
-      <compilerarg value="-Xlint:none" />
-      <compilerarg value="-Xmaxerrs" /><compilerarg value="10" />
-    </javac>
-    <javac 
-        srcdir="src:generated-src"
-        destdir="classes" 
-        optimize="yes"
-        includeAntRuntime="no"
-        debug="${debug}">
-      <classpath refid="classpath" /> 
+      <classpath refid="classpath" />
       <compilerarg value="-Xlint:all" />
       <compilerarg value="-Xmaxerrs" /><compilerarg value="10" />
       <compilerarg value="-Xmaxwarns" /><compilerarg value="10" />
     </javac>
   </target>
-  
+
   <target name="doc" description="generate javadoc" depends="generate_code">
     <javadoc destdir="docs/api" sourcepath="src">
       <package name="freeboogie.*" />
@@ -236,12 +224,12 @@
       description="generate the distribution">
     <mkdir dir="dist" />
     <mkdir dir="dist/lib" />
-    <jar 
+    <jar
         jarfile="dist/freeboogie-${version}.jar"
         basedir="classes">
       <manifest>
         <attribute name="Main-Class" value="freeboogie.Main" />
-        <attribute name="Class-Path" 
+        <attribute name="Class-Path"
           value="lib/${antlr-jar} lib/${genericutils-jar} lib/${gcollect-jar} lib/${clops-jar} lib/${jline-jar}"/>
       </manifest>
     </jar>
@@ -255,7 +243,7 @@
   <!-- {{{ test targets -->
 
   <target name="functional_test" depends="compile" description="run functional tests">
-    <exec executable="test/functional/test" 
+    <exec executable="test/functional/test"
           dir="test/functional"
           resolveexecutable="true"
           failonerror="true"/>
@@ -318,7 +306,7 @@
     <defaultexcludes default="true" />
   </target>
 
-  <target 
+  <target
       name="clean_all"
       depends="clean"
       description="also remove libraries and articles">
