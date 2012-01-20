@@ -230,14 +230,14 @@
       <manifest>
         <attribute name="Main-Class" value="freeboogie.Main" />
         <attribute name="Class-Path"
-          value="lib/${antlr-jar} lib/${genericutils-jar} lib/${gcollect-jar} lib/${clops-jar} lib/${jline-jar}"/>
+          value="lib/${antlr.jar} lib/${genericutils.jar} lib/${guava.jar} lib/${clops.jar} lib/${jline.jar}"/>
       </manifest>
     </jar>
-    <copy file="lib/${antlr-jar}" todir="dist/lib" />
-    <copy file="lib/${clops-jar}" todir="dist/lib" />
-    <copy file="lib/${gcollect-jar}" todir="dist/lib" />
-    <copy file="lib/${genericutils-jar}" todir="dist/lib" />
-    <copy file="lib/${jline-jar}" todir="dist/lib" />
+    <copy file="lib/${antlr.jar}" todir="dist/lib" />
+    <copy file="lib/${clops.jar}" todir="dist/lib" />
+    <copy file="lib/${guava.jar}" todir="dist/lib" />
+    <copy file="lib/${genericutils.jar}" todir="dist/lib" />
+    <copy file="lib/${jline.jar}" todir="dist/lib" />
   </target>
   <!-- }}} -->
   <!-- {{{ test targets -->

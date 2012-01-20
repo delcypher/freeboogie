@@ -40,23 +40,23 @@ public class Logger<C extends Enum<C>, L extends Enum<L>> {
 
   // The main sink setter, plus convenience ones.
   public void sink(PrintWriter sink) {
-    this.sink = sink; 
+    this.sink = sink;
   }
 
-  public void sink(OutputStream sink) { 
-    sink(new PrintWriter(sink, true)); 
+  public void sink(OutputStream sink) {
+    sink(new PrintWriter(sink, true));
   }
 
-  public void sink(Writer sink) { 
-    sink(new PrintWriter(sink, true)); 
+  public void sink(Writer sink) {
+    sink(new PrintWriter(sink, true));
   }
 
-  public void sink(String sink) throws IOException { 
-    sink(new PrintWriter(sink)); 
+  public void sink(String sink) throws IOException {
+    sink(new PrintWriter(sink));
   }
 
-  public void sink(File sink) throws IOException { 
-    sink(new PrintWriter(sink)); 
+  public void sink(File sink) throws IOException {
+    sink(new PrintWriter(sink));
   }
 
   // === Methods for setting up the behavior of this class ===
@@ -67,7 +67,7 @@ public class Logger<C extends Enum<C>, L extends Enum<L>> {
   public void level(L thresholdLevel) {
     this.thresholdLevel = thresholdLevel;
   }
-  
+
   public void enable(C category) {
     if (enabledCategories == null)
       enabledCategories = EnumSet.of(category);
@@ -77,7 +77,7 @@ public class Logger<C extends Enum<C>, L extends Enum<L>> {
 
   public void disable(C category) {
     if (enabledCategories == null) return;
-    enabledCategories.remove(category); 
+    enabledCategories.remove(category);
   }
 
   // === Main methods for using this class ===
@@ -103,7 +103,7 @@ public class Logger<C extends Enum<C>, L extends Enum<L>> {
     if (verbose) {
       m = String.format(
           "%s %s %x %s",
-          c.name(), 
+          c.name(),
           l.name(),
           System.currentTimeMillis(),
           m);
@@ -112,7 +112,7 @@ public class Logger<C extends Enum<C>, L extends Enum<L>> {
   }
 
   private boolean isWritable(C c, L l) {
-    return 
+    return
       enabledCategories != null &&
       thresholdLevel != null &&
       enabledCategories.contains(c) &&
