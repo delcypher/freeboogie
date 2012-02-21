@@ -10,8 +10,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.UnmodifiableIterator;
 import genericutils.*;
 
+import freeboogie.Main;
 import freeboogie.ast.*;
-
 import static freeboogie.cli.FbCliOptionsInterface.*;
 //}}}
 
@@ -36,9 +36,6 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
   private static final BigInteger ZERO = BigInteger.valueOf(0);
   private static final BigInteger MAX_INT =
       BigInteger.valueOf(Integer.MAX_VALUE);
-
-  private static final Logger<LogCategories, LogLevel> log =
-      Logger.<LogCategories, LogLevel>get("log");
 
   // used for primitive types (so reference equality is used below)
   private static final PrimitiveType boolType =
@@ -176,11 +173,11 @@ public class TypeChecker extends Evaluator<Type> implements TcInterface {
 
   // BEGIN helper methods {{{
   private static void info(String s) {
-    log.say(LogCategories.TYPECHECK, LogLevel.INFO, s);
+    Main.log.say(LogCategories.TYPECHECK, LogLevel.INFO, s);
   }
 
   private static void info(Supplier<String> s) {
-    log.say(LogCategories.TYPECHECK, LogLevel.INFO, s);
+    Main.log.say(LogCategories.TYPECHECK, LogLevel.INFO, s);
   }
 
   // |ast| may be used for debugging

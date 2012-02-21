@@ -7,11 +7,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import genericutils.Logger;
 
+import freeboogie.Main;
 import freeboogie.ast.*;
 import freeboogie.backend.*;
 import freeboogie.cli.FbCliOptionsInterface;
 import freeboogie.tc.TcInterface;
-
 import static freeboogie.cli.FbCliOptionsInterface.LogCategories;
 import static freeboogie.cli.FbCliOptionsInterface.LogLevel;
 import static freeboogie.cli.FbCliOptionsInterface.ReportLevel;
@@ -36,13 +36,8 @@ import static freeboogie.cli.FbCliOptionsInterface.ReportOn;
   situation arises.
  */
 public class VcGenerator extends Transformer {
-  private Logger<LogCategories, LogLevel> log = 
-    Logger.<LogCategories, LogLevel>get("log");
-  private Logger<ReportOn, ReportLevel> out =
-    Logger.<ReportOn, ReportLevel>get("out");
-
   public void log(String s) {
-    log.say(LogCategories.VCGEN, LogLevel.INFO, s);
+    Main.log.say(LogCategories.VCGEN, LogLevel.INFO, s);
   }
 
   private Prover<SmtTerm> prover;
@@ -56,14 +51,14 @@ public class VcGenerator extends Transformer {
   private FbCliOptionsInterface opt;
   private Program program;
 
-  public void reinitialize() { 
-    log.say(
+  public void reinitialize() {
+    Main.log.say(
         LogCategories.VCGEN,
         LogLevel.WARNING,
         "Reinitializing VcGenerator.");
     if (prover != null) prover.terminate();
     prover = null;
-    initialize(opt); 
+    initialize(opt);
     prepare();
   }
 
@@ -77,24 +72,24 @@ public class VcGenerator extends Transformer {
     prover = new YesSmtProver();
     try {
       switch (opt.getProverOpt()) {
-        case SIMPLIFY: 
+        case SIMPLIFY:
           prover = new SimplifyProver(
               opt.getProverCommandLineOpt().split("\\s+"));
           break;
       }
     } catch (ProverException e) {
-      out.say(
-          ReportOn.MAIN, 
-          ReportLevel.NORMAL, 
+      Main.out.say(
+          ReportOn.MAIN,
+          ReportLevel.NORMAL,
           "I can't start the prover. All querries will pass.");
-      log.say(
-          LogCategories.VCGEN, 
+      Main.log.say(
+          LogCategories.VCGEN,
           LogLevel.WARNING,
           "ProverException: " + e);
     }
     try { prover.push(); }
     catch (ProverException e) {
-      out.say(
+      Main.out.say(
           ReportOn.MAIN,
           ReportLevel.NORMAL,
           "The prover can't hear me. Falling back to my dear YesMan.");
@@ -135,7 +130,7 @@ public class VcGenerator extends Transformer {
       axiomSender.process(program);
       prover.push();
     } catch (ProverException e) {
-      out.say(
+      Main.out.say(
           ReportOn.MAIN,
           ReportLevel.NORMAL,
           "The prover can't handle " + program.fileName() + ". Skipping.");
@@ -174,7 +169,7 @@ public class VcGenerator extends Transformer {
     sb.append(implementation.sig().name());
     sb.append(" at ");
     sb.append(implementation.sig().loc().toString());
-    out.say(ReportOn.MAIN, ReportLevel.QUIET, sb.toString());
+    Main.out.say(ReportOn.MAIN, ReportLevel.QUIET, sb.toString());
   }
 }
 

@@ -21,32 +21,29 @@ import static freeboogie.cli.FbCliOptionsInterface.LogLevel;
  * @param <T> the type of terms
  */
 public abstract class ACalculus<T extends Term<T>> {
-  protected Logger<LogCategories, LogLevel> log = 
-    Logger.<LogCategories, LogLevel>get("log");
-
   /** the preconditions of each command. */
   protected final HashMap<Command, T> preCache = Maps.newHashMap();
 
   /** the postconditions of each command. */
   protected final HashMap<Command, T> postCache = Maps.newHashMap();
-  
+
   /** builds terms for a specific theorem prover. */
   protected TermBuilder<T> term;
-  
+
   protected T trueTerm;
-  
+
   /** the control flow graph currently being processed. */
   protected SimpleGraph<Command> flow;
 
   protected boolean assumeAsserts;
-  
+
   /** the current body which is being inspected. */
   private Body currentBody;
 
   private TcInterface tc;
 
-  public void setBuilder(TermBuilder<T> term) { 
-    this.term = term; 
+  public void setBuilder(TermBuilder<T> term) {
+    this.term = term;
     trueTerm = term.mk("literal_formula", Boolean.valueOf(true));
   }
 
@@ -54,7 +51,7 @@ public abstract class ACalculus<T extends Term<T>> {
 //System.out.println("really set " + (tc != null));
     this.tc = tc;
   }
-  
+
   public void resetCache() {
     preCache.clear();
     postCache.clear();
@@ -64,25 +61,28 @@ public abstract class ACalculus<T extends Term<T>> {
     return currentBody;
   }
 
-  /** 
+  /**
     Sets the implementation to be processed by subsequent calls to
     {@code pre}, {@code post}, and {@code vc}.
    */
   public void prepareFor(Implementation implementation) {
     flow = tc.flowGraph(implementation);
-    log.say(LogCategories.STATS, LogLevel.INFO, "cfg_size " + flow.nodeCount());
+    Main.log.say(
+        LogCategories.STATS,
+        LogLevel.INFO,
+        "cfg_size " + flow.nodeCount());
     currentBody = implementation.body();
     assert flow.isFrozen() : "please freeze flowgraph first";
     assert !flow.hasCycle() : "please cut loops first";
     resetCache();
   }
-  
+
   /**
    * Returns a verification condition for the whole flow graph.
    * @return a term representing the vc
    */
   public abstract T vc();
-  
+
   // === helpers ===
   public static boolean is(Command c, AssertAssumeCmd.CmdType t) {
     if (!(c instanceof AssertAssumeCmd)) return false;

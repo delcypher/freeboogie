@@ -3,16 +3,17 @@ package freeboogie.backend;
 import java.io.IOException;
 import java.util.*;
 
+import com.google.common.collect.ImmutableList;
 import genericutils.Err;
 import genericutils.Pair;
 
+import freeboogie.Main;
 import static freeboogie.cli.FbCliOptionsInterface.LogCategories;
 import static freeboogie.cli.FbCliOptionsInterface.LogLevel;
-import com.google.common.collect.ImmutableList;
 
 /**
  * Used to interact with Simplify and Z3 (when run in Simplify
- * interactive <tt>/si</tt> mode). 
+ * interactive <tt>/si</tt> mode).
  *
  * The responsibilities of this class are:
  *  (1) Prepare the {@code TermBuilder} by registering the
@@ -25,12 +26,12 @@ import com.google.common.collect.ImmutableList;
  *  (4) TODO Take care of array axiomatization. Later on we should
  *      change this to take advantage of the built in arrays in Z3.
  *
- * @author rgrig 
+ * @author rgrig
  */
 public class SimplifyProver extends Prover<SmtTerm> {
   private SimplifyProcess simplify;
   private StringBuilder strBuilder;
-  
+
   /**
    * Creates new {@code SimplifyProver}. It also tries to start the prover.
    *
@@ -54,7 +55,7 @@ public class SimplifyProver extends Prover<SmtTerm> {
   // TODO treat everything that is registered in TermBuilder
   //      and drop the toUpperCase()
   private void printTerm(SmtTerm t, StringBuilder sb) {
-    if (t.id.startsWith("var")) { 
+    if (t.id.startsWith("var")) {
       sb.append((String)t.data);
     } else if (t.id.startsWith("forall")) {
       sb.append("(FORALL (");
@@ -134,7 +135,7 @@ public class SimplifyProver extends Prover<SmtTerm> {
     simplify.sendCommand("(BG_POP)");
     log("(BG_POP)");
   }
-  
+
   @Override
   public boolean isValid(SmtTerm t) throws ProverException {
     Pair<SmtTerm, ImmutableList<SmtTerm>> p = SmtTerms.eliminateSharingPair(t, builder);
@@ -146,7 +147,7 @@ public class SimplifyProver extends Prover<SmtTerm> {
     boolean r = simplify.isValid(strBuilder.toString());
     long endTime = System.nanoTime();
     long time = endTime - startTime;
-    log.say(
+    Main.log.say(
         LogCategories.STATS,
         LogLevel.INFO,
         String.format("provertime %.3fs", 1e-9*time));
@@ -164,7 +165,7 @@ public class SimplifyProver extends Prover<SmtTerm> {
     simplify.stopProver();
     log("I tried to kill the prover. Hope it's dead.");
   }
-  
+
   /**
    * Runs some basic tests.
    * @param args the command line arguments
@@ -175,7 +176,7 @@ public class SimplifyProver extends Prover<SmtTerm> {
     TermBuilder<SmtTerm> b = p.getBuilder();
     SmtTerm x = b.mk("var_pred", "x");
     SmtTerm y = b.mk("var_pred", "y");
-    SmtTerm q = b.mk("not", b.mk("iff", 
+    SmtTerm q = b.mk("not", b.mk("iff",
       b.mk("iff", b.mk("and", x, y), b.mk("or", x, y)),
       b.mk("iff", x, y)
     ));

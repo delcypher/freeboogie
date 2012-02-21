@@ -7,6 +7,7 @@ import genericutils.Err;
 import genericutils.Logger;
 import genericutils.StackedHashMap;
 
+import freeboogie.Main;
 import freeboogie.ast.Expr;
 import freeboogie.ast.FbInteger;
 import freeboogie.tc.TcInterface;
@@ -27,9 +28,6 @@ import static freeboogie.cli.FbCliOptionsInterface.LogLevel;
  * @author rgrig 
  */
 public abstract class TermBuilder<T extends Term<T>> {
-  private Logger<LogCategories, LogLevel> log =
-    Logger.<LogCategories, LogLevel>get("log");
-
   protected FormulaOfExpr<T> term;
 
   private StackedHashMap<String, TermDef> termDefs =
@@ -115,7 +113,7 @@ public abstract class TermBuilder<T extends Term<T>> {
 
     term = new FormulaOfExpr<T>(new TermOfExpr<T>());
     term.setBuilder(this);
-    log.say(LogCategories.BACKEND, LogLevel.INFO, "TermBuilder ready.");
+    Main.log.say(LogCategories.BACKEND, LogLevel.INFO, "TermBuilder ready.");
   }
   
   /** 

@@ -45,8 +45,12 @@ import static freeboogie.cli.FbCliOptionsInterface.*;
 public class Main {
 
   private FbCliOptionsInterface opt;
-  private Logger<ReportOn, ReportLevel> out;
-  private Logger<LogCategories, LogLevel> log;
+
+  // The two loggers are used by the whole project.
+  static public Logger<ReportOn, ReportLevel> out =
+      Logger.<ReportOn, ReportLevel>make();
+  static public Logger<LogCategories, LogLevel> log =
+      Logger.<LogCategories, LogLevel>make();
 
   private Program boogie;
   private TcInterface tc;
@@ -120,10 +124,6 @@ public class Main {
   }
 
   private void setupLogging() {
-    // NOTE: The explicit specialization on the following two
-    // lines is there only because of a bug in javac.
-    out = Logger.<ReportOn, ReportLevel>get("out");
-    log = Logger.<LogCategories, LogLevel>get("log");
     out.sink(System.out);
     out.level(opt.getReportLevel());
     for (ReportOn c : opt.getReportOn()) out.enable(c);

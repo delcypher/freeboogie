@@ -17,7 +17,6 @@ import com.google.common.base.Supplier;
   @param <C> the type of the categories
  */
 public class Logger<C extends Enum<C>, L extends Enum<L>> {
-  private static HashMap<String, Logger> instances = Maps.newHashMap();
   private PrintWriter sink;
   private L thresholdLevel;
   private EnumSet<C> enabledCategories;
@@ -27,15 +26,8 @@ public class Logger<C extends Enum<C>, L extends Enum<L>> {
     verbose = false;
   }
 
-  public static <C extends Enum<C>, L extends Enum<L>>
-  Logger<C, L> get(String name) {
-    @SuppressWarnings("unchecked") // TODO: put some checks
-    Logger<C, L> r = instances.get(name);
-    if (r == null) {
-      r = new Logger<C, L>();
-      instances.put(name, r);
-    }
-    return r;
+  public static <C extends Enum<C>, L extends Enum<L>> Logger<C, L> make() {
+    return new Logger<C, L>();
   }
 
   // The main sink setter, plus convenience ones.

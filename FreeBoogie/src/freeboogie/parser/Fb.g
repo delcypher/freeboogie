@@ -4,7 +4,7 @@ grammar Fb;
 // BEGIN prelude {{{
 
 @header {
-  package freeboogie.parser; 
+  package freeboogie.parser;
 
   import java.math.BigInteger;
   import java.util.ArrayDeque;
@@ -14,7 +14,8 @@ grammar Fb;
   import genericutils.Id;
   import genericutils.Logger;
 
-  import freeboogie.ast.*; 
+  import freeboogie.Main;
+  import freeboogie.ast.*;
   import freeboogie.tc.TypeUtils;
   import static freeboogie.cli.FbCliOptionsInterface.ReportOn;
   import static freeboogie.cli.FbCliOptionsInterface.ReportLevel;
@@ -41,8 +42,8 @@ grammar Fb;
     private int lhsLength;
     private int rhsLength;
     public LhsRhsMismatchException(
-        int lhsLength, 
-        int rhsLength, 
+        int lhsLength,
+        int rhsLength,
         IntStream input
     ) {
       super(input);
@@ -66,7 +67,7 @@ grammar Fb;
   private FileLocation fileLoc(ImmutableList<? extends Ast> al) {
     return al.isEmpty()? FileLocation.unknown() : fileLoc(al.get(0));
   }
-  
+
   public boolean ok = true;  // set to false while testing (only) the grammar
 
   private ImmutableList.Builder<TypeDecl> typeDeclBuilder;
@@ -77,10 +78,6 @@ grammar Fb;
   private ImmutableList.Builder<Procedure> procedureDeclBuilder;
   private ImmutableList.Builder<Implementation> implementationBuilder;
 
-  private Logger<ReportOn, ReportLevel> out = 
-      Logger.<ReportOn, ReportLevel>get("out");
-
-  
   @Override
   public void reportError(RecognitionException x) {
     ok = false;
@@ -102,7 +99,7 @@ grammar Fb;
     if (l instanceof MapSelect) {
       MapSelect ms = (MapSelect) l;
       return desugarMapAssignment(
-          ms.map().clone(), 
+          ms.map().clone(),
           MapUpdate.mk(ms.map(), ms.idx(), r, ms.loc()));
     } else if (l instanceof Identifier) {
       Identifier id = (Identifier) l;
@@ -149,11 +146,11 @@ decl:
 ;
 
 type_decl:
-    start='type' attribute_list 
+    start='type' attribute_list
     f='finite'? n=ID tv=type_vars ('=' s=type)? ';'
     { if (ok) {
       if ($f!=null && $s.v!=null) {
-        out.say(ReportOn.PARSER, ReportLevel.NORMAL, 
+        Main.out.say(ReportOn.PARSER, ReportLevel.NORMAL,
           "I'm ignoring 'finite' on the type synonym " + $n.text + ".");
       }
       typeDeclBuilder.add(TypeDecl.mk(
@@ -176,7 +173,7 @@ type_id:
 ;
 
 axiom_decl:
-    loc='axiom' e=expr ';' 
+    loc='axiom' e=expr ';'
     { if (ok) axiomDeclBuilder.add(Axiom.mk(
           ImmutableList.<Attribute>of(),
           Id.get("unnamed"),
@@ -186,7 +183,7 @@ axiom_decl:
 ;
 
 var_decl:
-    'var' v=one_var_decl 
+    'var' v=one_var_decl
     { if (ok) variableDeclBuilder.addAll($v.v); }
     (',' vv=one_var_decl { if (ok) variableDeclBuilder.addAll($vv.v);})* ';'
 ;
@@ -272,7 +269,7 @@ impl_decl:
 ;
 
 signature returns [Signature v]:
-  ID tv=type_args '(' (a=opt_id_type_list)? ')' 
+  ID tv=type_args '(' (a=opt_id_type_list)? ')'
   ('returns' '(' (b=opt_id_type_list)? ')')?
     { if(ok) $v = Signature.mk($ID.text,$tv.v,$a.v,$b.v,tokLoc($ID)); }
 ;
@@ -287,7 +284,7 @@ scope {
 }
 :
       {$spec::free = false;}
-    (f='free' {$spec::free = true;})? 
+    (f='free' {$spec::free = true;})?
         (((r='requires' | e='ensures') h=expr
       { if(ok) {
         if ($r != null)
@@ -362,7 +359,7 @@ command	returns [Command v]:
         { if (ok) { $v = WhileCmd.mk($label_list.v,$c.v,$li.v,$b.v,tokLoc($t)); }}
     | t='if' '(' c=wildcard_or_expr ')' '{' yes=block '}' no=else_branch
         { if (ok) { $v = IfCmd.mk($label_list.v,$c.v,$yes.v,$no.v,tokLoc($t)); }}
-    | t='break' (bl=ID)? ';' 
+    | t='break' (bl=ID)? ';'
         { if (ok) { $v = BreakCmd.mk($label_list.v, $bl.text, tokLoc($t)); }}
   )
 ;
@@ -421,7 +418,7 @@ call_lhs returns [ImmutableList<Identifier> v]:
   | {$v=ImmutableList.<Identifier>of();}
 ;
 // END body }}}
-	
+
 /* {{{ BEGIN expression grammar.
 
    See http://www.engr.mun.ca/~theo/Misc/exp_parsing.htm
@@ -441,23 +438,23 @@ call_lhs returns [ImmutableList<Identifier> v]:
    ==> is right associative
    Others are left associative.
    The unary operators are ! and -.
-   Typechecking takes care of booleans added to integers 
+   Typechecking takes care of booleans added to integers
    and the like.
  */
 
 expr returns [Expr v]:
-  l=expr_a {$v=$l.v;} 
+  l=expr_a {$v=$l.v;}
     (t='<==>' r=expr_a {if(ok) $v=BinaryOp.mk(BinaryOp.Op.EQUIV,$v,$r.v,tokLoc($t));})*
 ;
 
-expr_a returns [Expr v]: 
-  l=expr_b {$v=$l.v;} 
+expr_a returns [Expr v]:
+  l=expr_b {$v=$l.v;}
     (t='==>' r=expr_a {if(ok) $v=BinaryOp.mk(BinaryOp.Op.IMPLIES,$v,$r.v,tokLoc($t));})?
 ;
 
 // TODO: these do not keep track of location quite correctly
 expr_b returns [Expr v]:
-  l=expr_c {$v=$l.v;} 
+  l=expr_c {$v=$l.v;}
     (op=and_or_op r=expr_c {if(ok) $v=BinaryOp.mk($op.v,$v,$r.v,fileLoc($r.v));})*
 ;
 
@@ -476,15 +473,15 @@ expr_e returns [Expr v]:
     (op=add_op r=expr_f {if(ok) $v=BinaryOp.mk($op.v,$v,$r.v,fileLoc($r.v));})*
 ;
 
-expr_f returns [Expr v]: 
+expr_f returns [Expr v]:
   l=expr_g {$v=$l.v;}
     (op=mul_op r=expr_g {if(ok) $v=BinaryOp.mk($op.v,$v,$r.v,fileLoc($r.v));})*
 ;
 
 expr_g returns [Expr v]:
-    expr_h 
+    expr_h
     { $v = $expr_h.v; }
-  | unary_op e=expr_g 
+  | unary_op e=expr_g
     { if (ok) $v=UnaryOp.mk($unary_op.v,$e.v,fileLoc($e.v)); }
 ;
 
@@ -495,7 +492,7 @@ expr_h returns [Expr v]:
 
 expr_i returns [Expr v]:
   atom { $v = $atom.v; }
-  (s='[' ((expr_list (':=' expr)?  
+  (s='[' ((expr_list (':=' expr)?
     { if (ok) { $v = $expr.v == null?
           MapSelect.mk($v,$expr_list.v,tokLoc($s)) :
           MapUpdate.mk($v,$expr_list.v,$expr.v,tokLoc($s)); }})
@@ -542,7 +539,7 @@ scope {
     t='false' { if(ok) $v = BooleanLiteral.mk(BooleanLiteral.Type.FALSE,tokLoc($t)); }
   | t='true'  { if(ok) $v = BooleanLiteral.mk(BooleanLiteral.Type.TRUE,tokLoc($t)); }
   | n=number  { if(ok) $v = $n.v; }
-  |	t=ID 
+  |	t=ID
               { if(ok) {
                 $v = Identifier.mk($t.text,ImmutableList.<Type>of(),tokLoc($t)); }}
     ('(' (p=expr_list?) ')'
@@ -556,7 +553,7 @@ scope {
 ;
 
 atom_id returns [Identifier v]:
-    ID 
+    ID
       { if(ok) {
         $v = Identifier.mk($ID.text,ImmutableList.<Type>of(),tokLoc($ID)); }}
 ;
@@ -572,7 +569,7 @@ quant_op returns [Quantifier.QuantType v]:
 
 // END of the expression grammar }}}
 
-// {{{ BEGIN list rules 
+// {{{ BEGIN list rules
 
 var_decl_list returns [ImmutableList<VariableDecl> v]
 scope {
@@ -580,8 +577,8 @@ scope {
 }
 :
       { $var_decl_list::b_ = ImmutableList.builder(); }
-    ('var' d=one_var_decl {if (ok) $var_decl_list::b_.addAll($d.v);} 
-    ((',' | ';' 'var') dd=one_var_decl 
+    ('var' d=one_var_decl {if (ok) $var_decl_list::b_.addAll($d.v);}
+    ((',' | ';' 'var') dd=one_var_decl
       {if (ok) $var_decl_list::b_.addAll($dd.v);})* ';')?
     { $v=$var_decl_list::b_.build(); }
 ;
@@ -616,13 +613,13 @@ scope {
 
 
 attribute_list returns [ImmutableList<Attribute> v]: /* TODO */ ;
-	
+
 expr_list returns [ImmutableList<Expr> v]
 scope {
   ImmutableList.Builder<Expr> builder;
 }:
     { $expr_list::builder = ImmutableList.builder(); }
-    e=expr {if(ok)$expr_list::builder.add($e.v);} 
+    e=expr {if(ok)$expr_list::builder.add($e.v);}
     (',' ee=expr {if(ok)$expr_list::builder.add($ee.v);})*
     { $v = $expr_list::builder.build(); }
 ;
@@ -631,7 +628,7 @@ id_list	returns [ImmutableList<Identifier> v]
 scope {
   ImmutableList.Builder<Identifier> b_;
 }
-:	
+:
       { $id_list::b_ = ImmutableList.builder(); }
     h=atom_id {if (ok) $id_list::b_.add($h.v); }
     (',' t=atom_id { if (ok) $id_list::b_.add($t.v); })*
@@ -643,7 +640,7 @@ scope {
   ImmutableList.Builder<Type> builder;
 }:
     { $type_list::builder = ImmutableList.builder(); }
-    (t=type {if(ok)$type_list::builder.add($t.v);} 
+    (t=type {if(ok)$type_list::builder.add($t.v);}
     (',' tt=type {if(ok)$type_list::builder.add($tt.v);})*)?
     { $v = $type_list::builder.build(); }
 ;
@@ -654,7 +651,7 @@ scope {
   ImmutableList.Builder<VariableDecl> builder;
 }:
     { $opt_id_type_list::builder = ImmutableList.builder(); }
-    x=opt_id_type {if(ok)$opt_id_type_list::builder.add($x.v);} 
+    x=opt_id_type {if(ok)$opt_id_type_list::builder.add($x.v);}
     (',' xx=opt_id_type {if(ok)$opt_id_type_list::builder.add($xx.v);})*
     { $v = $opt_id_type_list::builder.build(); }
 ;
@@ -700,15 +697,15 @@ index_list returns [ArrayDeque<ImmutableList<Expr>> v]:
   { $v = new ArrayDeque<ImmutableList<Expr>>(); }
   (i=index {$v.add($i.v);})*
 ;
-	
+
 type_vars returns [ImmutableList<Identifier> v]
 scope {
   ImmutableList.Builder<Identifier> b;
 }:
     { $type_vars::b = ImmutableList.builder(); }
     (ID { $type_vars::b.add(Identifier.mk(
-        $ID.text, 
-        ImmutableList.<Type>of(), 
+        $ID.text,
+        ImmutableList.<Type>of(),
         tokLoc($ID))); })*
     { $v = $type_vars::b.build(); }
 ;
@@ -717,31 +714,31 @@ scope {
 // END list rules }}}
 
 // BEGIN type rules {{{
-type returns [Type v]: 
+type returns [Type v]:
     type_atom  { $v = $type_atom.v; }
   | map_type   { $v = $map_type.v; }
   | user_type  { $v = $user_type.v; }
 ;
 
-type_atom returns [Type v]: 
+type_atom returns [Type v]:
     primitive_type  { $v = $primitive_type.v; }
   | '(' type ')' { $v = $type.v; }
 ;
 
-primitive_type returns [PrimitiveType v]: 
-    s='bool' 
+primitive_type returns [PrimitiveType v]:
+    s='bool'
     { if (ok) $v = PrimitiveType.mk(PrimitiveType.Ptype.BOOL, -1, tokLoc($s)); }
-  | s='int' 
+  | s='int'
     { if (ok) $v = PrimitiveType.mk(PrimitiveType.Ptype.INT, -1, tokLoc($s)); }
   | s=BIT_VECTOR
     { if (ok) {
       String x = $s.text.substring(2, $s.text.length());
       if (x.length() < 10)
-        $v = PrimitiveType.mk(PrimitiveType.Ptype.INT, Integer.parseInt(x)); 
+        $v = PrimitiveType.mk(PrimitiveType.Ptype.INT, Integer.parseInt(x));
       else throw new IntRangeException(x, input); }}
 ;
 
-map_type returns [MapType v]: 
+map_type returns [MapType v]:
     ta=type_args s='[' idx=type_list ']' type
     { if (ok) { $v = MapType.mk($ta.v, $idx.v, $type.v, tokLoc($s)); }}
 ;
@@ -756,14 +753,14 @@ scope {
   ImmutableList.Builder<Type> b;
 }:
     { $user_type::b = ImmutableList.builder(); }
-    n=ID 
-    (ti=ID 
+    n=ID
+    (ti=ID
     {if (ok) {
       $user_type::b.add(UserType.mk(
-          $ti.text, 
+          $ti.text,
           ImmutableList.<Type>of(),
           tokLoc($ti))); }}
-    | ta=type_atom { if (ok) $user_type::b.add($ta.v);})* 
+    | ta=type_atom { if (ok) $user_type::b.add($ta.v);})*
     (tm=map_type { if (ok) $user_type::b.add($tm.v);})?
     { if (ok) { $v = UserType.mk($n.text, $user_type::b.build(), tokLoc($n)); }}
 ;
@@ -776,7 +773,7 @@ number returns [NumberLiteral v]: INT {
   String x = $INT.text;
   String y = null;
   int i = x.indexOf("bv");
-  if (i != -1) { 
+  if (i != -1) {
     y = x.substring(i + 2, x.length());
     x = x.substring(0, i);
     int bits;
@@ -795,7 +792,7 @@ ID:
   ('a'..'z'|'A'..'Z'|'\''|'~'|'#'|'$'|'.'|'?'|'_'|'^'|'\\')
   ('a'..'z'|'A'..'Z'|'\''|'~'|'#'|'$'|'.'|'?'|'_'|'^'|'`'|'0'..'9')*
 ;
-	
+
 INT     : 	'0'..'9'+ ('bv' '0'..'9'+)?;
 WS      : 	(' '|'\t'|'\n'|'\r')+ {$channel=HIDDEN;};
 COMMENT

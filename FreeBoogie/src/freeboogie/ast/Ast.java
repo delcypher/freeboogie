@@ -19,8 +19,6 @@ import static freeboogie.cli.FbCliOptionsInterface.*;
  * @author rgrig
  */
 public abstract class Ast implements Cloneable {
-  static Logger<LogCategories,LogLevel> log = 
-      Logger.<LogCategories,LogLevel>get("log");
 
   /** The location of this AST node. */
   protected FileLocation location;

@@ -6,6 +6,7 @@ import com.google.common.base.Supplier;
 import genericutils.FramedStack;
 import genericutils.Logger;
 
+import freeboogie.Main;
 import static freeboogie.cli.FbCliOptionsInterface.LogCategories;
 import static freeboogie.cli.FbCliOptionsInterface.LogLevel;
 
@@ -42,13 +43,11 @@ public abstract class Prover<T extends Term<T>> {
   protected FramedStack<T> assumptions;
 
   protected TermBuilder<T> builder;
-  protected Logger<LogCategories, LogLevel> log =
-    Logger.<LogCategories, LogLevel>get("log");
   protected void log(Supplier<String> s) {
-    log.say(LogCategories.PROVER, LogLevel.INFO, s);
+    Main.log.say(LogCategories.PROVER, LogLevel.INFO, s);
   }
   protected void log(String s) {
-    log.say(LogCategories.PROVER, LogLevel.INFO, s);
+    Main.log.say(LogCategories.PROVER, LogLevel.INFO, s);
   }
 
   public Prover() {

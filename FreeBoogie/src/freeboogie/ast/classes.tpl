@@ -15,6 +15,7 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import genericutils.Logger;
 
+import freeboogie.Main;
 import static freeboogie.cli.FbCliOptionsInterface.*;
 
 /** @author rgrig */
@@ -26,7 +27,7 @@ public \if_terminal{final}{abstract} class \ClassName extends \BaseName {
   // === construction ===
   private \ClassName(\mtn_list) {
     this(\members[,]{\memberName}, FileLocation.unknown());
-    log.say(LogCategories.AST, LogLevel.WARNING, new Supplier<String>() {
+    Main.log.say(LogCategories.AST, LogLevel.WARNING, new Supplier<String>() {
       @Override public String get() {
         StackTraceElement[] stack = new Exception().getStackTrace();
         for (int i = 1; i < stack.length; ++i) {
